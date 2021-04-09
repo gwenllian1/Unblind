@@ -1,6 +1,7 @@
 package com.example.unblind;
 
 import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -13,38 +14,27 @@ import android.util.Log;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 
 public class ExampleService extends Service {
-//    private NotificationManager exampleNM;
     private int NOTIFICATION = R.string.example_service_running;
-
-//    public class ExampleBinder extends Binder {
-//        ExampleService getService() {
-//            return ExampleService.this;
-//        }
-//    }
 
     @Override
     public void onCreate() {
         super.onCreate();
+        startNotification();
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-//        Log.i("LocalService", "Received start id " + startId + ": " + intent);
-//        showNotification();
-//        return START_NOT_STICKY;
-//        exampleNM = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        showNotification();
+        super.onStartCommand(intent, flags, startId);
         return START_NOT_STICKY;
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-//        exampleNM.cancel(NOTIFICATION);
-//        Toast.makeText(this, R.string.example_service_stopped, Toast.LENGTH_SHORT).show();
     }
 
     @Nullable
@@ -54,26 +44,38 @@ public class ExampleService extends Service {
 //        return exampleBinder;
     }
 
-//    private final IBinder exampleBinder = new ExampleBinder();
-
-    private void showNotification() {
+    private void startNotification() {
         CharSequence text = getText(R.string.example_service_running);
 
-        // Launch activity when notification clicked
         PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
                 new Intent(this, MainActivity.class), 0);
 
-        Notification notification = new NotificationCompat.Builder(this, ExampleApp.CHANNEL_ID)
+        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        String channelId = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ? createNotificationChannel(notificationManager) : "";
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, channelId);
+        Notification notification = notificationBuilder.setOngoing(true)
                 .setSmallIcon(R.drawable.ic_android_black_24dp)
                 .setTicker(text)
                 .setWhen(System.currentTimeMillis())
                 .setContentTitle(getText(R.string.example_service_label))
                 .setContentText(text)
                 .setContentIntent(contentIntent)
+                .setCategory(NotificationCompat.CATEGORY_SERVICE)
                 .build();
 
-//        exampleNM.notify(NOTIFICATION, notification);
-        startForeground(1,notification);
+        startForeground(1, notification);
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private String createNotificationChannel(NotificationManager notificationManager){
+        String channelId = "exampleChannel";
+        String channelName = "Example Channel";
+        NotificationChannel channel = new NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_HIGH);
+        // omitted the LED color
+        channel.setImportance(NotificationManager.IMPORTANCE_NONE);
+        channel.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
+        notificationManager.createNotificationChannel(channel);
+        return channelId;
     }
 
 }
