@@ -15,4 +15,5 @@
         app:navGraph="@navigation/main_setting_nav"
         tools:layout_editor_absoluteX="200dp"
         tools:layout_editor_absoluteY="250dp" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
