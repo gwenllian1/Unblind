@@ -2,8 +2,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <PreferenceCategory
-        app:title="Main Setting"
-        >
+        android:contentDescription="Main Setting Section"
+        app:title="Main Setting">
 
         <SwitchPreferenceCompat
             android:id="@+id/ActivateSwitch"
