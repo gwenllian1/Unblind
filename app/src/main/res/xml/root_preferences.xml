@@ -3,7 +3,8 @@
 
     <PreferenceCategory
         android:contentDescription="Main Setting Section"
-        app:title="Main Setting">
+        app:title="Main Setting"
+        app:icon="@drawable/ic_baseline_play_arrow_24">
 
         <SwitchPreferenceCompat
             android:id="@+id/ActivateSwitch"
@@ -28,7 +29,8 @@
             app:title="Activate Screen Reader" />
 
     </PreferenceCategory>
-    <PreferenceCategory app:title="@string/messages_header">
+    <PreferenceCategory app:title="@string/preferences_header"
+        app:icon="@drawable/ic_baseline_person_24">
 
         <EditTextPreference
             app:key="signature"
