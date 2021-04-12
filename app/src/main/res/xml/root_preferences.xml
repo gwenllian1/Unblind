@@ -8,8 +8,11 @@
 
         <SwitchPreferenceCompat
             android:id="@+id/ActivateSwitch"
+            app:defaultValue="true"
             app:key="sync"
-            app:title="Activate Service" />
+            app:title="Activate Service"
+
+            />
 
         <SwitchPreferenceCompat
             android:id="@+id/NavSwitch"
