@@ -9,5 +9,11 @@
 
     <string name="hello_first_fragment">Hello first fragment</string>
     <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
-    <string name="background_work">Background Work!</string>
+    <string name="example_service_running">Example service is running</string>
+    <string name="example_service_label">Example Service</string>
+    <string name="example_service_stopped">Example service has stopped.</string>
+    <string name="example_service_connected">Example service is connected.</string>
+    <string name="example_service_disconnected">Example service is disconnected.</string>
+    <string name="channel_name">Example Channel</string>
+    <string name="channel_description">Just an example channel</string>
 </resources>
