@@ -7,9 +7,8 @@ import android.view.MenuItem;
 import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.lifecycle.ViewModelProvider;
-import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
+import androidx.lifecycle.ViewModelProvider;
 
 public class MainActivity extends AppCompatActivity {
     private BackgroundViewModel mViewModel;
@@ -25,6 +24,9 @@ public class MainActivity extends AppCompatActivity {
 
         // get the ViewModel
         mViewModel = new ViewModelProvider(this).get(BackgroundViewModel.class);
+
+
+
     }
 
     @Override
