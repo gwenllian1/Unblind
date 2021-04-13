@@ -1,6 +1,8 @@
 package com.example.unblind;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.provider.Settings;
 
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
@@ -15,7 +17,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             @Override
             public boolean onPreferenceClick(Preference preference) {
                 //Add code for team two. Code below for when Settings Preference is clicked
-                System.out.println("For Team 2");
+                startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS));
                 return true;
             }
         });
