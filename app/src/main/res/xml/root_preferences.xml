@@ -1,0 +1,60 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory
+        android:contentDescription="Main Setting Section"
+        app:title="Main Setting"
+        app:icon="@drawable/ic_baseline_play_arrow_24">
+
+        <SwitchPreferenceCompat
+            android:id="@+id/ActivateSwitch"
+            app:defaultValue="true"
+            app:key="sync"
+            app:title="Activate Service"
+
+            />
+
+        <SwitchPreferenceCompat
+            android:id="@+id/NavSwitch"
+            app:dependency="sync"
+            app:key="attachment"
+            app:summaryOff="@string/attachment_summary_off"
+            app:summaryOn="@string/attachment_summary_on"
+            app:title="Activate Navigation Bar" />
+        <SwitchPreferenceCompat
+            android:id="@+id/ScreenReaderSwitch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:dependency="sync"
+            app:key="attachment"
+            app:summaryOff="@string/attachment_summary_off"
+            app:summaryOn="@string/attachment_summary_on"
+            app:title="Activate Screen Reader" />
+
+    </PreferenceCategory>
+    <PreferenceCategory app:title="@string/preferences_header"
+        app:icon="@drawable/ic_baseline_person_24">
+
+        <EditTextPreference
+            app:key="signature"
+            app:title="@string/signature_title"
+            app:useSimpleSummaryProvider="true" />
+
+        <ListPreference
+            app:defaultValue="reply"
+            app:entries="@array/reply_entries"
+            app:entryValues="@array/reply_values"
+            app:key="reply"
+            app:title="@string/reply_title"
+            app:useSimpleSummaryProvider="true" />
+
+        <Preference
+            android:title="Accessibility Settings"
+            android:key="@string/accessibility_button"
+            android:summary="Go to settings"
+            />
+
+
+    </PreferenceCategory>
+
+</PreferenceScreen>
