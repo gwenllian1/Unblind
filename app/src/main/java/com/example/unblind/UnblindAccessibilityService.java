@@ -11,13 +11,19 @@ public class UnblindAccessibilityService extends AccessibilityService {
 
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
-        Log.e(TAG, "onAccessibilityEvent: " + event.getClass() + " " + event.getContentDescription());
+        Log.e(TAG, "onAccessibilityEvent: " + event.getClass().getName());
 
         AccessibilityNodeInfo source = event.getSource();
         if (source == null) {
             return;
         }
 
+        if (event.getText() == null) {
+            Log.e(TAG, "event text " + event.getText());
+        } else {
+            Log.e(TAG, "evnet text: none");
+        }
+        
         if (source.getContentDescription() == null) {
             Log.e(TAG, "description: " + "custom added description");
         } else {
@@ -25,12 +31,10 @@ public class UnblindAccessibilityService extends AccessibilityService {
         }
 
         if (source.getText() == null) {
-            Log.e(TAG, "text: " + "no text");
+            Log.e(TAG, "view text: none");
         } else {
-            Log.e(TAG, "text: " + source.getText());
+            Log.e(TAG, "view text: " + source.getText());
         }
-
-        Log.e(TAG, "class: " + source.getClassName());
 
         source.recycle();
 
