@@ -35,4 +35,6 @@
     <string name="example_service_disconnected">Example service is disconnected.</string>
     <string name="channel_name">Example Channel</string>
     <string name="channel_description">Just an example channel</string>
+    <string name="accessibility_service_label">Unblind</string>
+    <string name="accessibility_service_description">Provides machine learning generated alt-text to unlabelled UI icons to be read by screen readers.</string>
 </resources>
