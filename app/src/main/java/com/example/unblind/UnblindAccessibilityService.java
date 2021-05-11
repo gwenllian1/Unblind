@@ -2,12 +2,32 @@ package com.example.unblind;
 
 import android.accessibilityservice.AccessibilityService;
 import android.accessibilityservice.AccessibilityServiceInfo;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
+import android.os.IBinder;
 import android.util.Log;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 
 public class UnblindAccessibilityService extends AccessibilityService {
     private static final String TAG = "UnblindAccessibilitySer";
+    DatabaseService mService;
+    private boolean mbound = false;
+
+    private ServiceConnection mConnection = new ServiceConnection() {
+        public void onServiceConnected(ComponentName className, IBinder service) {
+            DatabaseService.LocalBinder binder = (DatabaseService.LocalBinder) service;
+            mService = binder.getService();
+            mbound = true;
+        }
+
+        public void onServiceDisconnected(ComponentName className) {
+            Log.e(TAG, "onServiceDisconnected");
+            mbound = false;
+        }
+    };
 
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
@@ -20,8 +40,11 @@ public class UnblindAccessibilityService extends AccessibilityService {
 
         if (event.getText() == null) {
             Log.e(TAG, "event text " + event.getText());
+            if (mbound) {
+                mService.insertDatabase("event.getText()", "no description");
+            }
         } else {
-            Log.e(TAG, "evnet text: none");
+            Log.e(TAG, "event text: none");
         }
         
         if (source.getContentDescription() == null) {
@@ -35,6 +58,7 @@ public class UnblindAccessibilityService extends AccessibilityService {
         } else {
             Log.e(TAG, "view text: " + source.getText());
         }
+
 
         source.recycle();
 
@@ -72,5 +96,9 @@ public class UnblindAccessibilityService extends AccessibilityService {
 
         this.setServiceInfo(info);
         Log.e(TAG, "onServiceConnected: ");
+
+        // Bind DatabaseService
+        Intent intent = new Intent(this, DatabaseService.class);
+        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
     }
 }

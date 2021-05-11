@@ -25,9 +25,6 @@ public class MainActivity extends AppCompatActivity {
 
         // get the ViewModel
         mViewModel = new ViewModelProvider(this).get(BackgroundViewModel.class);
-
-
-
     }
 
     @Override

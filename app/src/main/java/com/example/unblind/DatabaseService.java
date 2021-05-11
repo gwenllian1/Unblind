@@ -7,10 +7,13 @@ import android.os.IBinder;
 
 import androidx.room.Room;
 
+import java.util.List;
+
 
 public class DatabaseService extends Service {
     private final IBinder binder = new LocalBinder();
     AppDatabase db = Room.databaseBuilder(getApplicationContext(), AppDatabase.class, "UIElement-Database").build();
+    UIElementDao uiElementDao = db.uiElementDao();
 
     public class LocalBinder extends Binder {
         DatabaseService getService() {
@@ -25,12 +28,12 @@ public class DatabaseService extends Service {
 
     // Client methods go below
 
-    public void queryDatabase() {
-
+    public List<UIElement> queryDatabase() {
+        return uiElementDao.getAll();
     }
 
-    public void insertDatabase() {
-
+    public void insertDatabase(String iconHash, String altText) {
+        uiElementDao.insertAll(new UIElement(iconHash, altText));
     }
 
 }
