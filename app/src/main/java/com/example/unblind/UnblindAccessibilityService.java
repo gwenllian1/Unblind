@@ -6,29 +6,34 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 
+import androidx.annotation.RequiresApi;
+
 public class UnblindAccessibilityService extends AccessibilityService {
     private static final String TAG = "UnblindAccessibilitySer";
     DatabaseService mService;
-    private boolean mbound = false;
+    private boolean mBound = false;
 
     private ServiceConnection mConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
             DatabaseService.LocalBinder binder = (DatabaseService.LocalBinder) service;
             mService = binder.getService();
-            mbound = true;
+            mBound = true;
+            Log.e(TAG, "onServiceConnected");
         }
 
         public void onServiceDisconnected(ComponentName className) {
             Log.e(TAG, "onServiceDisconnected");
-            mbound = false;
+            mBound = false;
         }
     };
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
         Log.e(TAG, "onAccessibilityEvent: " + event.getClass().getName());
@@ -40,9 +45,7 @@ public class UnblindAccessibilityService extends AccessibilityService {
 
         if (event.getText() == null) {
             Log.e(TAG, "event text " + event.getText());
-            if (mbound) {
-                mService.insertDatabase("event.getText()", "no description");
-            }
+             if (mBound) mService.insertDatabase(String.join("", event.getText()), "event text");
         } else {
             Log.e(TAG, "event text: none");
         }
@@ -51,12 +54,14 @@ public class UnblindAccessibilityService extends AccessibilityService {
             Log.e(TAG, "description: " + "custom added description");
         } else {
             Log.e(TAG, "description: " + source.getContentDescription());
+             if (mBound) mService.insertDatabase((String) source.getContentDescription(), "source description");
         }
 
         if (source.getText() == null) {
             Log.e(TAG, "view text: none");
         } else {
             Log.e(TAG, "view text: " + source.getText());
+             if (mBound) mService.insertDatabase((String) source.getText(), "source text");
         }
 
 
@@ -99,6 +104,7 @@ public class UnblindAccessibilityService extends AccessibilityService {
 
         // Bind DatabaseService
         Intent intent = new Intent(this, DatabaseService.class);
+        startService(intent);
         bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
     }
 }
