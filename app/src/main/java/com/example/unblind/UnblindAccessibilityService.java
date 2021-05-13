@@ -2,12 +2,28 @@ package com.example.unblind;
 
 import android.accessibilityservice.AccessibilityService;
 import android.accessibilityservice.AccessibilityServiceInfo;
+import android.graphics.Bitmap;
+import android.graphics.ColorSpace;
+import android.graphics.Rect;
+import android.hardware.HardwareBuffer;
+import android.util.Base64;
 import android.util.Log;
+import android.view.Display;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 
+import androidx.annotation.NonNull;
+
+import java.io.ByteArrayOutputStream;
+import java.util.Objects;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
 public class UnblindAccessibilityService extends AccessibilityService {
     private static final String TAG = "UnblindAccessibilitySer";
+
+    private ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(10, 10, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
 
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
@@ -35,8 +51,44 @@ public class UnblindAccessibilityService extends AccessibilityService {
         } else {
             Log.e(TAG, "view text: " + source.getText());
         }
+        String currentNodeClassName = (String) source.getClassName();
 
-        source.recycle();
+        if (currentNodeClassName == null || !currentNodeClassName.equals("android.widget.ImageButton")) {
+            Log.w("Demo AS - currentNodeClassName is not android.widget.ImageButton: ", currentNodeClassName);
+            source.recycle();
+            return;
+        }
+
+        // From this point, we can assume the source UI element is an image button
+        takeScreenshot(Display.DEFAULT_DISPLAY, threadPoolExecutor, new TakeScreenshotCallback() {
+            @Override
+            public void onSuccess(@NonNull ScreenshotResult screenshot) {
+                Log.w("Unblind", "Screenshot successfully taken");
+                final HardwareBuffer hardwareBuffer = screenshot.getHardwareBuffer();
+                final ColorSpace colorSpace = screenshot.getColorSpace();
+                Bitmap screenShotBM = Bitmap.wrapHardwareBuffer(hardwareBuffer, colorSpace);
+                Rect rectTest = new Rect();
+                source.getBoundsInScreen(rectTest);
+                if (rectTest.width() < 1 || rectTest.height() < 1) {
+                    source.recycle();
+                    return;
+                }
+                Bitmap cropped = Bitmap.createBitmap(screenShotBM, rectTest.left, rectTest.top, rectTest.width(), rectTest.height());
+                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                cropped.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream);
+                byte[] byteArray = byteArrayOutputStream .toByteArray();
+                String encoded = Base64.encodeToString(byteArray, Base64.DEFAULT);
+                Log.w("Screenshot result", encoded);
+
+                source.recycle();
+            }
+
+            @Override
+            public void onFailure(int errorCode) {
+                Log.w("Unblind", "Failed to take screenshot - errorCode:" + errorCode);
+                source.recycle();
+            }
+        });
 
     }
 
