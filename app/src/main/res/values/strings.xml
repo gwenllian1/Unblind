@@ -37,4 +37,5 @@
     <string name="channel_description">Just an example channel</string>
     <string name="accessibility_service_label">Unblind</string>
     <string name="accessibility_service_description">Provides machine learning generated alt-text to unlabelled UI icons to be read by screen readers.</string>
+    <string name="turn_off">Turn Off</string>
 </resources>

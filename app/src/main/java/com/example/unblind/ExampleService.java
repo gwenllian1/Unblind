@@ -29,6 +29,9 @@ public class ExampleService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         super.onStartCommand(intent, flags, startId);
+        if(intent.getAction() != null && intent.getAction().equals(getString(R.string.turn_off))) {
+            stopForeground(true);
+        }
         return START_NOT_STICKY;
     }
 
@@ -49,6 +52,9 @@ public class ExampleService extends Service {
 
         PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
                 new Intent(this, MainActivity.class), 0);
+        Intent stopSelf = new Intent(this, ExampleService.class);
+        stopSelf.setAction(getString(R.string.turn_off));
+        PendingIntent pStopSelf = PendingIntent.getService(this, 0, stopSelf,PendingIntent.FLAG_CANCEL_CURRENT);
 
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         String channelId = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ? createNotificationChannel(notificationManager) : "";
@@ -61,6 +67,7 @@ public class ExampleService extends Service {
                 .setContentText(text)
                 .setContentIntent(contentIntent)
                 .setCategory(NotificationCompat.CATEGORY_SERVICE)
+                .addAction(R.drawable.ic_android_black_24dp, getString(R.string.turn_off), pStopSelf)
                 .build();
 
         startForeground(1, notification);
