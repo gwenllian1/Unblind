@@ -12,9 +12,7 @@ import android.util.Log;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 
-import androidx.annotation.RequiresApi;
-
-public class UnblindAccessibilityService extends AccessibilityService {
+public class UnblindAccessibilityService extends AccessibilityService implements ColleagueInterface{
     private static final String TAG = "UnblindAccessibilitySer";
     DatabaseService mService;
     private boolean mBound = false;
@@ -103,5 +101,10 @@ public class UnblindAccessibilityService extends AccessibilityService {
         Intent intent = new Intent(this, DatabaseService.class);
         startService(intent);
         bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+    }
+
+    @Override
+    public void update() {
+
     }
 }
