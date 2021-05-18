@@ -45,7 +45,6 @@ public class UnblindAccessibilityService extends AccessibilityService {
 
         if (event.getText() == null) {
             Log.e(TAG, "event text " + event.getText());
-             if (mBound) mService.insertDatabase(String.join("", event.getText()), "event text");
         } else {
             Log.e(TAG, "event text: none");
         }
@@ -54,14 +53,12 @@ public class UnblindAccessibilityService extends AccessibilityService {
             Log.e(TAG, "description: " + "custom added description");
         } else {
             Log.e(TAG, "description: " + source.getContentDescription());
-             if (mBound) mService.insertDatabase((String) source.getContentDescription(), "source description");
         }
 
         if (source.getText() == null) {
             Log.e(TAG, "view text: none");
         } else {
             Log.e(TAG, "view text: " + source.getText());
-             if (mBound) mService.insertDatabase((String) source.getText(), "source text");
         }
 
 
