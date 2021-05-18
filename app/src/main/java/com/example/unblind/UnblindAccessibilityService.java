@@ -16,22 +16,9 @@ import androidx.annotation.RequiresApi;
 
 public class UnblindAccessibilityService extends AccessibilityService {
     private static final String TAG = "UnblindAccessibilitySer";
-    DatabaseService mService;
-    private boolean mBound = false;
+//    private boolean mBound = false;
 
-    private ServiceConnection mConnection = new ServiceConnection() {
-        public void onServiceConnected(ComponentName className, IBinder service) {
-            DatabaseService.LocalBinder binder = (DatabaseService.LocalBinder) service;
-            mService = binder.getService();
-            mBound = true;
-            Log.e(TAG, "onServiceConnected");
-        }
 
-        public void onServiceDisconnected(ComponentName className) {
-            Log.e(TAG, "onServiceDisconnected");
-            mBound = false;
-        }
-    };
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
@@ -45,7 +32,7 @@ public class UnblindAccessibilityService extends AccessibilityService {
 
         if (event.getText() == null) {
             Log.e(TAG, "event text " + event.getText());
-             if (mBound) mService.insertDatabase(String.join("", event.getText()), "event text");
+//             if (mBound) mService.insertDatabase(String.join("", event.getText()), "event text");
         } else {
             Log.e(TAG, "event text: none");
         }
@@ -54,14 +41,14 @@ public class UnblindAccessibilityService extends AccessibilityService {
             Log.e(TAG, "description: " + "custom added description");
         } else {
             Log.e(TAG, "description: " + source.getContentDescription());
-             if (mBound) mService.insertDatabase((String) source.getContentDescription(), "source description");
+//             if (mBound) mService.insertDatabase((String) source.getContentDescription(), "source description");
         }
 
         if (source.getText() == null) {
             Log.e(TAG, "view text: none");
         } else {
             Log.e(TAG, "view text: " + source.getText());
-             if (mBound) mService.insertDatabase((String) source.getText(), "source text");
+//             if (mBound) mService.insertDatabase((String) source.getText(), "source text");
         }
 
 
@@ -103,8 +90,8 @@ public class UnblindAccessibilityService extends AccessibilityService {
         Log.e(TAG, "onServiceConnected: ");
 
         // Bind DatabaseService
-        Intent intent = new Intent(this, DatabaseService.class);
-        startService(intent);
-        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+//        Intent intent = new Intent(this, DatabaseService.class);
+//        startService(intent);
+//        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
     }
 }
