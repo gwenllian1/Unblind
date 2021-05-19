@@ -20,6 +20,11 @@ public class UnblindMediator {
         observers.add(observer);
     }
 
+    public void removeObserver(ColleagueInterface observer){
+        Log.e(TAG, "removing observer");
+        observers.remove(observer);
+    }
+
     private void notifyObserver(){
         for (ColleagueInterface observer : observers) {
             observer.update();
