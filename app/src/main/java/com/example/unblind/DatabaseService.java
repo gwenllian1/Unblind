@@ -18,6 +18,7 @@ public class DatabaseService extends Service {
     private static final String TAG = "UnBlindDatabaseService";
 //     AppDatabase db = AppDatabase.getInstance(this);
 //     UIElementDao uiElementDao = db.getUIElementDao();
+    private UnblindMediator unblindMediator = new UnblindMediator();
 
     public class LocalBinder extends Binder {
         public DatabaseService getService() {
@@ -25,16 +26,18 @@ public class DatabaseService extends Service {
         }
     }
 
+
     @Override
     public IBinder onBind(Intent intent) {
         Log.e(TAG, "bound");
         setSharedData("testing", "image1", "label1");
-        Log.e(TAG, "bound-after");
+        Log.e(TAG, "Unblindbound-after");
         getSharedData("testing", "image1");
         return binder;
     }
 
     // Client methods go below
+
 
 //    public List<UIElement> queryDatabase() {
 //        Log.e(TAG, "query all");
@@ -66,4 +69,7 @@ public class DatabaseService extends Service {
         return label;
     }
 
+    public UnblindMediator getUnblindMediator() {
+        return unblindMediator;
+    }
 }

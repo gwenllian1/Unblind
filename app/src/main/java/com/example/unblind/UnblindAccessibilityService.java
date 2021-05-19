@@ -9,24 +9,29 @@ import android.content.ServiceConnection;
 import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
+import android.util.Pair;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 
-public class UnblindAccessibilityService extends AccessibilityService implements ColleagueInterface{
+import androidx.annotation.RequiresApi;
+
+public class UnblindAccessibilityService extends AccessibilityService implements ColleagueInterface {
     private static final String TAG = "UnblindAccessibilitySer";
     DatabaseService mService;
     private boolean mBound = false;
+    private UnblindMediator mediator;
+    private Pair<String, String> currentElement;
 
     private ServiceConnection mConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
             DatabaseService.LocalBinder binder = (DatabaseService.LocalBinder) service;
             mService = binder.getService();
             mBound = true;
-            Log.e(TAG, "onServiceConnected");
+            Log.e(TAG, "databaseServiceConnected");
         }
 
         public void onServiceDisconnected(ComponentName className) {
-            Log.e(TAG, "onServiceDisconnected");
+            Log.e(TAG, "databaseServiceDisconnected");
             mBound = false;
         }
     };
@@ -46,7 +51,7 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         } else {
             Log.e(TAG, "event text: none");
         }
-        
+
         if (source.getContentDescription() == null) {
             Log.e(TAG, "description: " + "custom added description");
         } else {
@@ -59,6 +64,16 @@ public class UnblindAccessibilityService extends AccessibilityService implements
             Log.e(TAG, "view text: " + source.getText());
         }
 
+        if (mBound) {
+            if (mediator == null) {
+                Log.e(TAG, "bound, getting mediator");
+                mediator = mService.getUnblindMediator();
+                mediator.addObserver((ColleagueInterface) this);
+            } else {
+                Log.e(TAG, "setting on mediator");
+                mediator.setElement(new Pair<String, String>("image", "message"));
+            }
+        }
 
         source.recycle();
 
@@ -105,6 +120,7 @@ public class UnblindAccessibilityService extends AccessibilityService implements
 
     @Override
     public void update() {
-
+        currentElement = mediator.getElement();
+        // currentElement is now complete, can be sent to TalkBack
     }
 }
