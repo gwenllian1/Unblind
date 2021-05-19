@@ -36,6 +36,7 @@
                 android:resource="@xml/accessibility_service_config" />
         </service>
         <service android:name=".DatabaseService" />
+        <service android:name=".ModelService" />
 
     </application>
 

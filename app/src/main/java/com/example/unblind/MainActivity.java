@@ -26,6 +26,10 @@ public class MainActivity extends AppCompatActivity {
 
         // get the ViewModel
         mViewModel = new ViewModelProvider(this).get(BackgroundViewModel.class);
+
+        // start the model service when the app is launched
+        Intent mServiceIntent = new Intent(this, ModelService.class);
+        getApplicationContext().startService(mServiceIntent);
     }
 
     @Override

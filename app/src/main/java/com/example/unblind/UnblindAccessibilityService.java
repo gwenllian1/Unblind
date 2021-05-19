@@ -121,6 +121,7 @@ public class UnblindAccessibilityService extends AccessibilityService implements
     @Override
     public void update() {
         currentElement = mediator.getElement();
+        Log.e(TAG, "updating element");
         // currentElement is now complete, can be sent to TalkBack
     }
 }
