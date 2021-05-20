@@ -27,7 +27,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         Intent serviceIntent = new Intent(this.getContext(), ExampleService.class);
         ContextCompat.startForegroundService(this.getContext(), serviceIntent); // Auto start service
 
-        SwitchPreferenceCompat activateSwitch = (SwitchPreferenceCompat) findPreference("sync");
+        SwitchPreferenceCompat activateSwitch = (SwitchPreferenceCompat) findPreference(getString(R.string.activate_service_key));
         activateSwitch.setChecked(true); // Always set switch as activated when opened
 
         activateSwitch.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
