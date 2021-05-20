@@ -57,7 +57,8 @@ public class ModelBlackBoxTesting {
      */
     public void loadClassifier(){
         // use the function provided by Utils class
-        classifier = new Classifier(Utils.assetFilePath(context, "labeldroid.pt"));
+        String absolutePath = Utils.assetFilePath(context, "labeldroid.pt"); //get absolute path
+        classifier = new Classifier(absolutePath);
     }
 
     /**

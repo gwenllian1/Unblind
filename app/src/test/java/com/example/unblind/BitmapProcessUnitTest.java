@@ -5,6 +5,8 @@ import android.graphics.BitmapFactory;
 
 import com.example.unblind.model.BitmapProcessor;
 
+import com.example.unblind.model.BitmapProcessor;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
