@@ -25,7 +25,11 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         });
 
         Intent serviceIntent = new Intent(this.getContext(), ExampleService.class);
+        ContextCompat.startForegroundService(this.getContext(), serviceIntent); // Auto start service
+
         SwitchPreferenceCompat activateSwitch = (SwitchPreferenceCompat) findPreference("sync");
+        activateSwitch.setChecked(true); // Always set switch as activated when opened
+
         activateSwitch.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
             @Override
             public boolean onPreferenceChange(Preference preference, Object newValue) {
@@ -39,6 +43,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         });
 
     }
+
 
 
 

@@ -19,10 +19,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
-        Intent serviceIntent = new Intent(this, ExampleService.class);
-        ContextCompat.startForegroundService(this, serviceIntent);
-
         // get the ViewModel
         mViewModel = new ViewModelProvider(this).get(BackgroundViewModel.class);
 
