@@ -1,4 +1,4 @@
-package com.example.unblind;
+package com.example.unblind.model;
 
 import android.graphics.Bitmap;
 
