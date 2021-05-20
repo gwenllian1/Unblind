@@ -2,13 +2,41 @@ package com.example.unblind;
 
 import android.accessibilityservice.AccessibilityService;
 import android.accessibilityservice.AccessibilityServiceInfo;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
+import android.os.Build;
+import android.os.IBinder;
 import android.util.Log;
+import android.util.Pair;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 
-public class UnblindAccessibilityService extends AccessibilityService {
-    private static final String TAG = "UnblindAccessibilitySer";
+import androidx.annotation.RequiresApi;
 
+public class UnblindAccessibilityService extends AccessibilityService implements ColleagueInterface {
+    private static final String TAG = "UnblindAccessibilitySer";
+    DatabaseService mService;
+    private boolean mBound = false;
+    private UnblindMediator mediator;
+    private Pair<String, String> currentElement;
+
+    private ServiceConnection mConnection = new ServiceConnection() {
+        public void onServiceConnected(ComponentName className, IBinder service) {
+            DatabaseService.LocalBinder binder = (DatabaseService.LocalBinder) service;
+            mService = binder.getService();
+            mBound = true;
+            Log.e(TAG, "databaseServiceConnected");
+        }
+
+        public void onServiceDisconnected(ComponentName className) {
+            Log.e(TAG, "databaseServiceDisconnected");
+            mBound = false;
+        }
+    };
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
         Log.e(TAG, "onAccessibilityEvent: " + event.getClass().getName());
@@ -21,9 +49,9 @@ public class UnblindAccessibilityService extends AccessibilityService {
         if (event.getText() == null) {
             Log.e(TAG, "event text " + event.getText());
         } else {
-            Log.e(TAG, "evnet text: none");
+            Log.e(TAG, "event text: none");
         }
-        
+
         if (source.getContentDescription() == null) {
             Log.e(TAG, "description: " + "custom added description");
         } else {
@@ -34,6 +62,17 @@ public class UnblindAccessibilityService extends AccessibilityService {
             Log.e(TAG, "view text: none");
         } else {
             Log.e(TAG, "view text: " + source.getText());
+        }
+
+        if (mBound) {
+            if (mediator == null) {
+                Log.e(TAG, "bound, getting mediator");
+                mediator = mService.getUnblindMediator();
+                mediator.addObserver((ColleagueInterface) this);
+            } else {
+                Log.e(TAG, "setting on mediator");
+                mediator.setElement(new Pair<String, String>("image", "message"));
+            }
         }
 
         source.recycle();
@@ -72,5 +111,17 @@ public class UnblindAccessibilityService extends AccessibilityService {
 
         this.setServiceInfo(info);
         Log.e(TAG, "onServiceConnected: ");
+
+        // Bind DatabaseService
+        Intent intent = new Intent(this, DatabaseService.class);
+        startService(intent);
+        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+    }
+
+    @Override
+    public void update() {
+        currentElement = mediator.getElement();
+        Log.e(TAG, "updating element");
+        // currentElement is now complete, can be sent to TalkBack
     }
 }

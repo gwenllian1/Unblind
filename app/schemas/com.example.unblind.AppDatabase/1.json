@@ -1,0 +1,40 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 1,
+    "identityHash": "159649634798dd0c27d2c1be885c989f",
+    "entities": [
+      {
+        "tableName": "UIElement",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`iconHash` TEXT NOT NULL, `alt_text` TEXT, PRIMARY KEY(`iconHash`))",
+        "fields": [
+          {
+            "fieldPath": "iconHash",
+            "columnName": "iconHash",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "altText",
+            "columnName": "alt_text",
+            "affinity": "TEXT",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "iconHash"
+          ],
+          "autoGenerate": false
+        },
+        "indices": [],
+        "foreignKeys": []
+      }
+    ],
+    "views": [],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '159649634798dd0c27d2c1be885c989f')"
+    ]
+  }
+}

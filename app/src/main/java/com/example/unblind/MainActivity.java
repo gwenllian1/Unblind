@@ -3,6 +3,7 @@ package com.example.unblind;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -22,8 +23,9 @@ public class MainActivity extends AppCompatActivity {
         // get the ViewModel
         mViewModel = new ViewModelProvider(this).get(BackgroundViewModel.class);
 
-
-
+        // start the model service when the app is launched
+        Intent mServiceIntent = new Intent(this, ModelService.class);
+        getApplicationContext().startService(mServiceIntent);
     }
 
     @Override
@@ -52,7 +54,6 @@ public class MainActivity extends AppCompatActivity {
 
     public void startBackgroundTask(View view) {
         // Ask the ViewModel to access the database
-        System.out.println("asdasdasdasd");
         mViewModel.accessDatabase();
     }
 
