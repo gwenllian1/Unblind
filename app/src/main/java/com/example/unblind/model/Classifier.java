@@ -23,33 +23,22 @@ public class Classifier {
 
     public String predict(Bitmap bitmap){
 
-        Tensor tensor = processor.preprocess(bitmap,224);
+        Tensor tensor = processor.preProcess(bitmap,224);
+        IValue inputs = IValue.from(tensor);
+        Tensor outputTensor = model.forward(inputs).toTensor();
+        String outputLabel = processor.postProcess(outputTensor);
 
+/*      This block of code is used for testing process, remove if not allowed -- Dustin
         float[] inputtensor = tensor.getDataAsFloatArray();
         float total = 0;
         for(float input : inputtensor){
            total += input;
         }
         Log.d("test", total + "");
-        StringBuilder strbul=new StringBuilder();
-        IValue inputs = IValue.from(tensor);
-
-        Tensor outputs = model.forward(inputs).toTensor();
-        //Log.d("Test", "predict: " + outputs);
-        long[] scores = outputs.getDataAsLongArray();
-
+        Log.d("Test", "predict: " + outputs);
         StringBuilder outputscore=new StringBuilder();
-        for (long score : scores) {
-            outputscore.append(score + " ");
-            if(score == 2){
-                break;
-            } else if (score != 1){
-                strbul.append(Constants.IMAGENET_CLASSES[(int)score] + " ");
-            }
-
-        }
-        outputscore.append(strbul.toString());
-        return outputscore.toString() ;
+        outputscore.append(outputLabel.toString());*/
+        return outputLabel;
     }
 
 }

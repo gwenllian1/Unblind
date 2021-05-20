@@ -25,7 +25,7 @@ public class Utils {
             }
             return file.getAbsolutePath();
         } catch (IOException e) {
-            Log.e("pytorchandroid", "Error process asset " + assetName + " to file path");
+            Log.e("Team 3 Model Utils", "Error process asset " + assetName + " to file path");
         }
         return null;
     }
