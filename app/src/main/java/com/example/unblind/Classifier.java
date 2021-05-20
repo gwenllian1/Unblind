@@ -7,37 +7,23 @@ import android.util.Log;
 import org.pytorch.IValue;
 import org.pytorch.Module;
 import org.pytorch.Tensor;
-import org.pytorch.torchvision.TensorImageUtils;
 
 
 public class Classifier {
 
     Module model;
-    float[] mean = {0.485f, 0.456f, 0.406f};
-    float[] std = {0.229f, 0.224f, 0.225f};
+    BitmapProcessor processor;
 
     public Classifier(String modelPath){
 
         model = Module.load(modelPath);
-
-    }
-
-//    public void setMeanAndStd(float[] mean, float[] std){
-//
-//        this.mean = mean;
-//        this.std = std;
-//    }
-
-    public Tensor preprocess(Bitmap bitmap, int size){
-
-        bitmap = Bitmap.createScaledBitmap(bitmap,size,size,false);
-        return TensorImageUtils.bitmapToFloat32Tensor(bitmap,this.mean,this.std);
+        processor = new BitmapProcessor();
 
     }
 
     public String predict(Bitmap bitmap){
 
-        Tensor tensor = preprocess(bitmap,224);
+        Tensor tensor = processor.preprocess(bitmap,224);
 
         float[] inputtensor = tensor.getDataAsFloatArray();
         float total = 0;
