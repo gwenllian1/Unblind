@@ -1,11 +1,14 @@
 // GitHub
 package com.example.unblind;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
@@ -15,19 +18,27 @@ import com.example.unblind.model.ModelBlackBoxTesting;
 
 public class MainActivity extends AppCompatActivity {
     private BackgroundViewModel mViewModel;
-
+    Button buttonModelTest;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        Context context = this;
 
-        ModelBlackBoxTesting test = new ModelBlackBoxTesting(this);
         Intent serviceIntent = new Intent(this, ExampleService.class);
         ContextCompat.startForegroundService(this, serviceIntent);
 
         // get the ViewModel
         mViewModel = new ViewModelProvider(this).get(BackgroundViewModel.class);
 
+        buttonModelTest = findViewById(R.id.button2);
+        buttonModelTest.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ModelBlackBoxTesting test = new ModelBlackBoxTesting(context);
+                Toast.makeText(context,"Test finished, check LogCat for the result",Toast.LENGTH_LONG).show();
+            }
+        });
 
 
     }
