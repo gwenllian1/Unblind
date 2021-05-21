@@ -28,7 +28,7 @@ public class BitmapProcessor {
     public Tensor preProcess(Bitmap bitmap, int size){
 
         bitmap = Bitmap.createScaledBitmap(bitmap,size,size,false); //      resize the bitmap
-        return TensorImageUtils.bitmapToFloat32Tensor(bitmap,this.mean,this.std);   // generate the tensor
+        return TensorImageUtils.bitmapToFloat32Tensor(bitmap,this.mean, this.std);   // generate the tensor
 
     }
 
