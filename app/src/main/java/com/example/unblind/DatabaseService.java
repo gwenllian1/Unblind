@@ -2,15 +2,10 @@ package com.example.unblind;
 
 import android.app.Service;
 import android.content.Intent;
-import android.nfc.Tag;
+import android.content.SharedPreferences;
 import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
-import android.content.SharedPreferences;
-
-import androidx.room.Room;
-
-import java.util.List;
 
 
 public class DatabaseService extends Service {
