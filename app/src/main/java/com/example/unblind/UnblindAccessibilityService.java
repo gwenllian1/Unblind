@@ -12,6 +12,21 @@ public class UnblindAccessibilityService extends AccessibilityService {
     private static final String TAG = "UnblindAccessibilitySer";
     private AccessibilityManager manager;
 
+    private void announceTextFromEvent(String text, AccessibilityEvent event) {
+        if (manager.isEnabled()) {
+            AccessibilityEvent e = AccessibilityEvent.obtain();
+            e.setEventType(AccessibilityEvent.TYPE_ANNOUNCEMENT);
+            e.setClassName(getClass().getName());
+            e.setPackageName(event.getPackageName());
+            e.getText().add(text);
+            manager.sendAccessibilityEvent(e);
+            Log.e(TAG, "No description found. Custom description added here");
+        }
+        else {
+            Log.e(TAG, "For some reason the manager did not work");
+        }
+    }
+
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
 
@@ -22,21 +37,7 @@ public class UnblindAccessibilityService extends AccessibilityService {
             return;
         }
 
-        if (source.getText() == null && source.getContentDescription() == null && event.getText().size() == 0) {
-            if (manager.isEnabled()) {
-                AccessibilityEvent e = AccessibilityEvent.obtain();
-                e.setEventType(AccessibilityEvent.TYPE_ANNOUNCEMENT);
-                e.setClassName(getClass().getName());
-                e.setPackageName(event.getPackageName());
-                e.getText().add("some textaaa");
-                manager.sendAccessibilityEvent(e);
-                Log.e(TAG, "No description found. Custom description added here");
-            }
-            else {
-                Log.e(TAG, "For some reason the manager did not work");
-            }
-        }
-        else {
+        if (source.getText() != null || source.getContentDescription() != null || event.getText().size() != 0) {
             Log.e(TAG, "Existing description found");
             if (source.getText() != null) {
                 Log.e(TAG, "source text: " + source.getText());
@@ -47,6 +48,7 @@ public class UnblindAccessibilityService extends AccessibilityService {
             else if (event.getContentDescription() != null) {
                 Log.e(TAG, "content description: " + event.getContentDescription());
             }
+            return;
         }
 
         source.recycle();
