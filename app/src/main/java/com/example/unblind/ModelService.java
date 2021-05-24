@@ -5,18 +5,25 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.graphics.Bitmap;
 import android.os.IBinder;
 import android.util.Log;
 import android.util.Pair;
 
 import androidx.annotation.Nullable;
 
+import com.example.unblind.model.Classifier;
+import com.example.unblind.model.Utils;
+
 public class ModelService extends Service implements ColleagueInterface {
     public static final String TAG = "ModelService";
     DatabaseService mService;
     UnblindMediator mediator;
-    Pair<String, String> currentElement;
+    Pair<Bitmap, String> currentElement = new Pair(null, "");
     boolean mBound = false;
+
+    Classifier classifier;
+
     private final ServiceConnection mConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
             DatabaseService.LocalBinder binder = (DatabaseService.LocalBinder) service;
@@ -38,7 +45,10 @@ public class ModelService extends Service implements ColleagueInterface {
 
     @Override
     public void update() {
-        currentElement = mediator.getElement();
+        if (currentElement.first != mediator.getElement().first){
+            currentElement = mediator.getElement();
+            runPredication();
+        }
         Log.e(TAG, "updating element");
         // call deeplearning function
     }
@@ -57,6 +67,7 @@ public class ModelService extends Service implements ColleagueInterface {
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.e(TAG, "Model service started");
         super.onStartCommand(intent, flags, startId);
+        loadClassifier();
         // bind to DatabaseService
         Intent newIntent = new Intent(this, DatabaseService.class);
         startService(newIntent);
@@ -64,7 +75,20 @@ public class ModelService extends Service implements ColleagueInterface {
         return START_NOT_STICKY;
     }
 
-    // Client methods go here
 
+    // Client methods go here
+    public void loadClassifier(){
+        // use the function provided by Utils class
+        String absolutePath = Utils.assetFilePath(this, "labeldroid.pt"); //get absolute path
+        classifier = new Classifier(absolutePath);
+    }
+
+
+    public void runPredication(){
+        String result = classifier.predict(currentElement.first);     // predict the bitmap
+        Log.d("Team 3 Model Result", result);
+        currentElement = new Pair(currentElement.first, result);
+        mediator.setElement(currentElement);
+    }
 
 }
