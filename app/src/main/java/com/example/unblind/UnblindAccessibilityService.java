@@ -53,6 +53,21 @@ public class UnblindAccessibilityService extends AccessibilityService {
         return buttonBitmap;
     }
 
+  private void announceTextFromEvent(String text, AccessibilityEvent event) {
+        if (manager.isEnabled()) {
+            AccessibilityEvent e = AccessibilityEvent.obtain();
+            e.setEventType(AccessibilityEvent.TYPE_ANNOUNCEMENT);
+            e.setClassName(getClass().getName());
+            e.setPackageName(event.getPackageName());
+            e.getText().add(text);
+            manager.sendAccessibilityEvent(e);
+            Log.e(TAG, "No description found. Custom description added here");
+        }
+        else {
+            Log.e(TAG, "For some reason the manager did not work");
+        }
+    }
+
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
         Log.v(TAG, "onAccessibilityEvent: " + event.getClass().getName());
@@ -62,38 +77,7 @@ public class UnblindAccessibilityService extends AccessibilityService {
             return;
         }
 
-        if (event.getText() == null) {
-            Log.v(TAG, "event text: none");
-        } else {
-            Log.v(TAG, "event text " + event.getText());
-        }
-        
-        if (source.getContentDescription() == null) {
-            Log.v(TAG, "source node description: none");
-        } else {
-            Log.v(TAG, "source node description: " + source.getContentDescription());
-        }
-
-        if (source.getText() == null) {
-            Log.v(TAG, "source node text: none");
-        } else {
-            Log.v(TAG, "source node text: " + source.getText());
-        }
-         if (source.getText() == null && source.getContentDescription() == null && event.getText().size() == 0) {
-            if (manager.isEnabled()) {
-                AccessibilityEvent e = AccessibilityEvent.obtain();
-                e.setEventType(AccessibilityEvent.TYPE_ANNOUNCEMENT);
-                e.setClassName(getClass().getName());
-                e.setPackageName(event.getPackageName());
-                e.getText().add("some textaaa");
-                manager.sendAccessibilityEvent(e);
-                Log.e(TAG, "No description found. Custom description added here");
-            }
-            else {
-                Log.e(TAG, "For some reason the manager did not work");
-            }
-        }
-        else {
+        if (source.getText() != null || source.getContentDescription() != null || event.getText().size() != 0) {
             Log.e(TAG, "Existing description found");
             if (source.getText() != null) {
                 Log.e(TAG, "source text: " + source.getText());
@@ -104,6 +88,7 @@ public class UnblindAccessibilityService extends AccessibilityService {
             else if (event.getContentDescription() != null) {
                 Log.e(TAG, "content description: " + event.getContentDescription());
             }
+            return;
         }
         String currentNodeClassName = (String) source.getClassName();
 
@@ -136,6 +121,7 @@ public class UnblindAccessibilityService extends AccessibilityService {
                 source.recycle();
                 // TODO: Send buttonImage to backend for processing here
                 // TODO: 'Speak' the returned text/description for buttonImage
+                announceTextFromEvent("Test 123", event);
                 return;
             }
 
