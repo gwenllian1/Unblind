@@ -1,14 +1,14 @@
 package com.example.unblind;
 
+import android.graphics.Bitmap;
 import android.util.Log;
 import android.util.Pair;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class UnblindMediator {
     private ArrayList<ColleagueInterface> observers;
-    private Pair<String, String> currentElement;
+    private Pair<Bitmap, String> currentElement = new Pair(null, null);
     public static final String TAG = "UnblindMediator";
 
     public UnblindMediator() {
@@ -31,13 +31,13 @@ public class UnblindMediator {
         }
     }
 
-    public void setElement(Pair<String, String> element){
+    public void setElement(Pair<Bitmap, String> element){
         currentElement = element;
         Log.e(TAG, "setting element");
         notifyObserver();
     }
 
-    public Pair<String, String> getElement(){
+    public Pair<Bitmap, String> getElement(){
         return currentElement;
     }
 

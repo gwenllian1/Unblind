@@ -6,6 +6,8 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
@@ -15,12 +17,15 @@ import android.view.accessibility.AccessibilityNodeInfo;
 
 import androidx.annotation.RequiresApi;
 
+import java.io.IOException;
+import java.io.InputStream;
+
 public class UnblindAccessibilityService extends AccessibilityService implements ColleagueInterface {
     private static final String TAG = "UnblindAccessibilitySer";
     DatabaseService mService;
     private boolean mBound = false;
     private UnblindMediator mediator;
-    private Pair<String, String> currentElement;
+    private Pair<Bitmap, String> currentElement = new Pair(null, "");
 
     private ServiceConnection mConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
@@ -71,7 +76,15 @@ public class UnblindAccessibilityService extends AccessibilityService implements
                 mediator.addObserver((ColleagueInterface) this);
             } else {
                 Log.e(TAG, "setting on mediator");
-                mediator.setElement(new Pair<String, String>("image", "message"));
+
+                try {
+                    InputStream inputStream = this.getAssets().open("86.png");
+                    Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+                    mediator.setElement(new Pair<Bitmap, String>(bitmap, "message"));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
             }
         }
 
@@ -120,8 +133,14 @@ public class UnblindAccessibilityService extends AccessibilityService implements
 
     @Override
     public void update() {
-        currentElement = mediator.getElement();
-        Log.e(TAG, "updating element");
-        // currentElement is now complete, can be sent to TalkBack
+        System.out.println(currentElement);
+        System.out.println(mediator.getElement());
+        if (!currentElement.second.equals(mediator.getElement().second)){
+            currentElement = mediator.getElement();
+            Log.e(TAG, "updating element");
+            // currentElement is now complete, can be sent to TalkBack
+        }
+
+
     }
 }
