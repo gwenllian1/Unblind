@@ -2,15 +2,23 @@ package com.example.unblind;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.IBinder;
+import android.util.Pair;
 
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 import org.junit.runner.RunWith;
+import org.testng.mustache.Model;
 //import androidx.test.runner.AndroidJUnit4;
 
 import com.example.unblind.DatabaseService;
+import com.example.unblind.UnblindMediator;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 //@RunWith(AndroidJUnit4::class)
 public class IntegrationUnitTest {
@@ -20,13 +28,36 @@ public class IntegrationUnitTest {
     private Context ApplicationProvider;
     IBinder service;
 
+    //mediator
+
+
 //    @Rule
 //    public final ServiceTestRule serviceRule = new ServiceTestRule();
 
 
     @Test
-    public void TestStringAndStringOne(){
-        //comparing the bitmaps
+    public void TestStringAndStringOne() throws IOException {
+//        UnblindMediator mediator = new UnblindMediator();
+//        UnblindAccessibilityService testInterface = new UnblindAccessibilityService();
+//        ModelService testInterface2 = new ModelService();
+//        ColleagueInterface testInterface3 = new UnblindAccessibilityService();
+//        ColleagueInterface testInterface4 = new ModelService();
+//        mediator.addObserver(testInterface3);
+//        mediator.addObserver(testInterface4);
+//
+//        InputStream inputStream = testInterface.getAssets().open("86.png");
+//        Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+
+//        testInterface.update();
+
+        //testing with new class just for testing
+        UnblindMediator mediator = new UnblindMediator();
+        testClass testinterface1 = new testClass();
+//        mediator.addObserver(testinterface1);
+        testinterface1.addMediator();
+
+
+
     }
 
     @Test
@@ -52,4 +83,23 @@ public class IntegrationUnitTest {
     }
 
 
+}
+
+class testClass implements ColleagueInterface
+{
+    private Pair<Bitmap, String> currentElement = new Pair(null, "");
+    UnblindMediator mediator = new UnblindMediator();
+
+    @Override
+    public void update() {
+        currentElement = mediator.getElement();
+    }
+
+    public Pair<Bitmap, String> getCurrentElement(){
+        return currentElement;
+    }
+
+    public void addMediator(){
+        mediator.addObserver((ColleagueInterface) this);
+    }
 }
