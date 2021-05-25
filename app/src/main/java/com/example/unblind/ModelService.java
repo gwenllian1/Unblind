@@ -6,11 +6,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.graphics.Bitmap;
+import android.os.AsyncTask;
 import android.os.IBinder;
 import android.util.Log;
 import android.util.Pair;
 
 import androidx.annotation.Nullable;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkManager;
 
 import com.example.unblind.model.Classifier;
 import com.example.unblind.model.Utils;
@@ -19,10 +22,36 @@ public class ModelService extends Service implements ColleagueInterface {
     public static final String TAG = "ModelService";
     DatabaseService mService;
     UnblindMediator mediator;
-    Pair<Bitmap, String> currentElement = new Pair(null, "");
+    WorkManager mWorkManager;
+    Pair<Bitmap, String> currentElement = new Pair<Bitmap, String>(null, "");
     boolean mBound = false;
+    static final String MODEL_NAME = "labeldroid.pt";
 
     Classifier classifier;
+
+    private class GetClassifier extends AsyncTask<String, Integer, Classifier> {
+
+        @Override
+        protected Classifier doInBackground(String... strings) {
+            String absolutePath = Utils.assetFilePath(getOuter(), strings[0]); //get absolute path
+            return new Classifier(absolutePath);
+        }
+
+        @Override
+        protected void onPostExecute(Classifier result) {
+            Log.e(TAG, "onPostExecute: ");
+            setClassifier(result);
+        }
+
+        public ModelService getOuter() {
+            return ModelService.this;
+        }
+    }
+
+    private void setClassifier(Classifier classifier) {
+        Log.e(TAG, "classifier set");
+        this.classifier = classifier;
+    }
 
     private final ServiceConnection mConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
@@ -50,7 +79,6 @@ public class ModelService extends Service implements ColleagueInterface {
             runPredication();
         }
         Log.e(TAG, "updating element");
-        // call deeplearning function
     }
 
     public ModelService getSelf() {
@@ -67,7 +95,8 @@ public class ModelService extends Service implements ColleagueInterface {
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.e(TAG, "Model service started");
         super.onStartCommand(intent, flags, startId);
-        loadClassifier();
+//        loadClassifier();
+        new GetClassifier().execute(MODEL_NAME);
         // bind to DatabaseService
         Intent newIntent = new Intent(this, DatabaseService.class);
         startService(newIntent);
@@ -87,7 +116,7 @@ public class ModelService extends Service implements ColleagueInterface {
     public void runPredication(){
         String result = classifier.predict(currentElement.first);     // predict the bitmap
         Log.d("Team 3 Model Result", result);
-        currentElement = new Pair(currentElement.first, result);
+        currentElement = new Pair<Bitmap, String>(currentElement.first, result);
         mediator.setElement(currentElement);
     }
 
