@@ -35,7 +35,7 @@ public class IntegrationUnitTest {
 //    public final ServiceTestRule serviceRule = new ServiceTestRule();
 
 
-    @Test
+
     public void TestStringAndStringOne() throws IOException {
 //        UnblindMediator mediator = new UnblindMediator();
 //        UnblindAccessibilityService testInterface = new UnblindAccessibilityService();
@@ -60,7 +60,6 @@ public class IntegrationUnitTest {
 
     }
 
-    @Test
     public void DatabaseTest1(){
         //testing if the database is working
 //        DatabaseService TestDB = new DatabaseService();
