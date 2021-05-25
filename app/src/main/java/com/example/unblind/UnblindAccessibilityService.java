@@ -6,32 +6,51 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.graphics.BitmapFactory;
-import android.os.Build;
-import android.os.IBinder;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.ColorSpace;
 import android.graphics.Rect;
 import android.hardware.HardwareBuffer;
+import android.os.Build;
+import android.os.IBinder;
 import android.util.Base64;
 import android.util.Log;
-import android.view.Display;
 import android.util.Pair;
+import android.view.Display;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 
 import java.io.ByteArrayOutputStream;
-import java.util.Objects;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-public class UnblindAccessibilityService extends AccessibilityService {
+public class UnblindAccessibilityService extends AccessibilityService implements ColleagueInterface {
     private static final String TAG = "UnBlind AS";
+    DatabaseService mService;
+    private boolean mBound = false;
+    private UnblindMediator mediator;
+    private Pair<Bitmap, String> currentElement = new Pair(null, "");
 
-    private ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(10, 10, 15, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
+    private final ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(10, 10, 15, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
+    private final ServiceConnection mConnection = new ServiceConnection() {
+        public void onServiceConnected(ComponentName className, IBinder service) {
+            DatabaseService.LocalBinder binder = (DatabaseService.LocalBinder) service;
+            mService = binder.getService();
+            mBound = true;
+            Log.e(TAG, "databaseServiceConnected");
+        }
+
+        public void onServiceDisconnected(ComponentName className) {
+            Log.e(TAG, "databaseServiceDisconnected");
+            mBound = false;
+        }
+    };
 
     private Bitmap getButtonImageFromScreenshot(AccessibilityNodeInfo buttonNode, Bitmap screenShotBM) {
         Rect rectTest = new Rect();
@@ -55,31 +74,6 @@ public class UnblindAccessibilityService extends AccessibilityService {
         Log.v(TAG, "Screenshot result for button: " + encoded);
         return buttonBitmap;
     }
-import androidx.annotation.RequiresApi;
-
-import java.io.IOException;
-import java.io.InputStream;
-
-public class UnblindAccessibilityService extends AccessibilityService implements ColleagueInterface {
-    private static final String TAG = "UnblindAccessibilitySer";
-    DatabaseService mService;
-    private boolean mBound = false;
-    private UnblindMediator mediator;
-    private Pair<Bitmap, String> currentElement = new Pair(null, "");
-
-    private ServiceConnection mConnection = new ServiceConnection() {
-        public void onServiceConnected(ComponentName className, IBinder service) {
-            DatabaseService.LocalBinder binder = (DatabaseService.LocalBinder) service;
-            mService = binder.getService();
-            mBound = true;
-            Log.e(TAG, "databaseServiceConnected");
-        }
-
-        public void onServiceDisconnected(ComponentName className) {
-            Log.e(TAG, "databaseServiceDisconnected");
-            mBound = false;
-        }
-    };
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
@@ -96,7 +90,7 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         } else {
             Log.v(TAG, "event text " + event.getText());
         }
-        
+
         if (source.getContentDescription() == null) {
             Log.v(TAG, "source node description: none");
         } else {
@@ -129,7 +123,7 @@ public class UnblindAccessibilityService extends AccessibilityService implements
             if (mediator == null) {
                 Log.e(TAG, "bound, getting mediator");
                 mediator = mService.getUnblindMediator();
-                mediator.addObserver((ColleagueInterface) this);
+                mediator.addObserver(this);
             } else {
                 Log.e(TAG, "setting on mediator");
 
@@ -216,7 +210,7 @@ public class UnblindAccessibilityService extends AccessibilityService implements
     public void update() {
         System.out.println(currentElement);
         System.out.println(mediator.getElement());
-        if (!currentElement.second.equals(mediator.getElement().second)){
+        if (!currentElement.second.equals(mediator.getElement().second)) {
             currentElement = mediator.getElement();
             Log.e(TAG, "updating element");
             // currentElement is now complete, can be sent to TalkBack
