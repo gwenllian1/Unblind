@@ -43,14 +43,20 @@ public class UnblindAccessibilityService extends AccessibilityService implements
             DatabaseService.LocalBinder binder = (DatabaseService.LocalBinder) service;
             mService = binder.getService();
             mBound = true;
+            setMediator(mService.getUnblindMediator());
             Log.e(TAG, "databaseServiceConnected");
         }
+
 
         public void onServiceDisconnected(ComponentName className) {
             Log.e(TAG, "databaseServiceDisconnected");
             mBound = false;
         }
     };
+
+    private void setMediator(UnblindMediator mediator) {
+        this.mediator = mediator;
+    }
 
     private Bitmap getButtonImageFromScreenshot(AccessibilityNodeInfo buttonNode, Bitmap screenShotBM) {
         Rect rectTest = new Rect();
@@ -120,28 +126,18 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         }
 
         if (mBound) {
-            if (mediator == null) {
-                Log.e(TAG, "bound, getting mediator");
-                mediator = mService.getUnblindMediator();
-                mediator.addObserver(this);
-            } else {
-                Log.e(TAG, "setting on mediator");
-
                 try {
                     InputStream inputStream = this.getAssets().open("86.png");
                     Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+                    Log.e(TAG, "setting on mediator");
                     mediator.setElement(new Pair<Bitmap, String>(bitmap, "message"));
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-
-            }
         }
 
-        source.recycle();
-
         // From this point, we can assume the source UI element is an image button
-        //  which has been clicked/tapped
+        // which has been clicked/tapped
         takeScreenshot(Display.DEFAULT_DISPLAY, threadPoolExecutor, new TakeScreenshotCallback() {
             @Override
             public void onSuccess(@NonNull ScreenshotResult screenshot) {
@@ -154,7 +150,6 @@ public class UnblindAccessibilityService extends AccessibilityService implements
                 source.recycle();
                 // TODO: Send buttonImage to backend for processing here
                 // TODO: 'Speak' the returned text/description for buttonImage
-                return;
             }
 
             @Override
