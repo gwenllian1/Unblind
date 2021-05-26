@@ -24,7 +24,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             }
         });
 
-        Intent serviceIntent = new Intent(this.getContext(), ExampleService.class);
+        Intent serviceIntent = new Intent(this.getContext(), ModelService.class);
         ContextCompat.startForegroundService(this.getContext(), serviceIntent); // Auto start service
 
         SwitchPreferenceCompat activateSwitch = (SwitchPreferenceCompat) findPreference(getString(R.string.activate_service_key));

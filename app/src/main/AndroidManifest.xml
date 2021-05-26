@@ -25,10 +25,6 @@
             </intent-filter>
         </activity>
 
-        <service android:name="com.example.unblind.ExampleService" android:enabled="true">
-
-        </service>
-
         <service android:name=".UnblindAccessibilityService"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
             android:label="@string/accessibility_service_label">
