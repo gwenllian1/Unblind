@@ -18,6 +18,7 @@ import android.util.Log;
 import android.util.Pair;
 import android.view.Display;
 import android.view.accessibility.AccessibilityEvent;
+import android.view.accessibility.AccessibilityManager;
 import android.view.accessibility.AccessibilityNodeInfo;
 
 import androidx.annotation.NonNull;
@@ -32,6 +33,7 @@ import java.util.concurrent.TimeUnit;
 
 public class UnblindAccessibilityService extends AccessibilityService implements ColleagueInterface {
     private static final String TAG = "UnBlind AS";
+    private AccessibilityManager manager;
     DatabaseService mService;
     private boolean mBound = false;
     private UnblindMediator mediator;
@@ -82,6 +84,21 @@ public class UnblindAccessibilityService extends AccessibilityService implements
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
+  private void announceTextFromEvent(String text, AccessibilityEvent event) {
+        if (manager.isEnabled()) {
+            AccessibilityEvent e = AccessibilityEvent.obtain();
+            e.setEventType(AccessibilityEvent.TYPE_ANNOUNCEMENT);
+            e.setClassName(getClass().getName());
+            e.setPackageName(event.getPackageName());
+            e.getText().add(text);
+            manager.sendAccessibilityEvent(e);
+            Log.e(TAG, "No description found. Custom description added here");
+        }
+        else {
+            Log.e(TAG, "For some reason the manager did not work");
+        }
+    }
+
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
         Log.v(TAG, "onAccessibilityEvent: " + event.getClass().getName());
@@ -91,22 +108,18 @@ public class UnblindAccessibilityService extends AccessibilityService implements
             return;
         }
 
-        if (event.getText() == null) {
-            Log.v(TAG, "event text: none");
-        } else {
-            Log.v(TAG, "event text " + event.getText());
-        }
-
-        if (source.getContentDescription() == null) {
-            Log.v(TAG, "source node description: none");
-        } else {
-            Log.v(TAG, "source node description: " + source.getContentDescription());
-        }
-
-        if (source.getText() == null) {
-            Log.v(TAG, "source node text: none");
-        } else {
-            Log.v(TAG, "source node text: " + source.getText());
+        if (source.getText() != null || source.getContentDescription() != null || event.getText().size() != 0) {
+            Log.e(TAG, "Existing description found");
+            if (source.getText() != null) {
+                Log.e(TAG, "source text: " + source.getText());
+            }
+            else if (event.getText().size() != 0) {
+                Log.e(TAG, "event text: " + event.getText());
+            }
+            else if (event.getContentDescription() != null) {
+                Log.e(TAG, "content description: " + event.getContentDescription());
+            }
+            return;
         }
         String currentNodeClassName = (String) source.getClassName();
 
@@ -116,25 +129,6 @@ public class UnblindAccessibilityService extends AccessibilityService implements
             return;
         }
 
-        Log.v(TAG, "Processing event of type: " + event.getEventType());
-        // AccessibilityEvent.TYPE_VIEW_CLICKED == 1
-        //  There are some other event types which may be relevant
-        if (event.getEventType() != AccessibilityEvent.TYPE_VIEW_CLICKED) {
-            Log.v(TAG, "Ignoring non-click event involving an image button");
-            source.recycle();
-            return;
-        }
-
-//        if (mBound) {
-//                try {
-//                    InputStream inputStream = this.getAssets().open("86.png");
-//                    Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
-//                    Log.e(TAG, "setting on mediator");
-//                    mediator.setElement(new Pair<Bitmap, String>(bitmap, "message"));
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
-//        }
 
         // From this point, we can assume the source UI element is an image button
         // which has been clicked/tapped
@@ -154,6 +148,7 @@ public class UnblindAccessibilityService extends AccessibilityService implements
                 source.recycle();
                 // TODO: Send buttonImage to backend for processing here
                 // TODO: 'Speak' the returned text/description for buttonImage
+                return;
             }
 
             @Override
@@ -175,13 +170,14 @@ public class UnblindAccessibilityService extends AccessibilityService implements
     protected void onServiceConnected() {
         super.onServiceConnected();
 
+        manager = (AccessibilityManager)
+                getSystemService(Context.ACCESSIBILITY_SERVICE);
+
         AccessibilityServiceInfo info = new AccessibilityServiceInfo();
 
         // Set the type of events that this service wants to listen to. Others
         // won't be passed to this service.
-        info.eventTypes = AccessibilityEvent.TYPE_VIEW_CLICKED |
-                AccessibilityEvent.TYPE_VIEW_FOCUSED;
-
+        info.eventTypes = AccessibilityEvent.TYPE_VIEW_ACCESSIBILITY_FOCUSED;
 
         // Set the type of feedback your service will provide.
         info.feedbackType = AccessibilityServiceInfo.FEEDBACK_SPOKEN;
