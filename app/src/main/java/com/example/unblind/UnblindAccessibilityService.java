@@ -84,12 +84,11 @@ public class UnblindAccessibilityService extends AccessibilityService implements
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
-  private void announceTextFromEvent(String text, AccessibilityEvent event) {
+  private void announceTextFromEvent(String text) {
         if (manager.isEnabled()) {
             AccessibilityEvent e = AccessibilityEvent.obtain();
             e.setEventType(AccessibilityEvent.TYPE_ANNOUNCEMENT);
             e.setClassName(getClass().getName());
-            e.setPackageName(event.getPackageName());
             e.getText().add(text);
             manager.sendAccessibilityEvent(e);
             Log.e(TAG, "No description found. Custom description added here");
@@ -98,6 +97,22 @@ public class UnblindAccessibilityService extends AccessibilityService implements
             Log.e(TAG, "For some reason the manager did not work");
         }
     }
+
+//    @RequiresApi(api = Build.VERSION_CODES.O)
+//    private void announceTextFromEvent(String text, AccessibilityEvent event) {
+//        if (manager.isEnabled()) {
+//            AccessibilityEvent e = AccessibilityEvent.obtain();
+//            e.setEventType(AccessibilityEvent.TYPE_ANNOUNCEMENT);
+//            e.setClassName(getClass().getName());
+//            e.setPackageName(event.getPackageName());
+//            e.getText().add(text);
+//            manager.sendAccessibilityEvent(e);
+//            Log.e(TAG, "No description found. Custom description added here");
+//        }
+//        else {
+//            Log.e(TAG, "For some reason the manager did not work");
+//        }
+//    }
 
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
@@ -209,6 +224,7 @@ public class UnblindAccessibilityService extends AccessibilityService implements
             currentElement = mediator.getElement();
             Log.e(TAG, "updating element");
             // currentElement is now complete, can be sent to TalkBack
+            announceTextFromEvent(currentElement.second);
         }
 
 
