@@ -47,6 +47,7 @@ public class UnblindAccessibilityService extends AccessibilityService implements
             mBound = true;
             setMediator(mService.getUnblindMediator());
             Log.e(TAG, "databaseServiceConnected");
+
         }
 
 
@@ -58,6 +59,7 @@ public class UnblindAccessibilityService extends AccessibilityService implements
 
     private void setMediator(UnblindMediator mediator) {
         this.mediator = mediator;
+        mediator.addObserver(this);
     }
 
     private Bitmap getButtonImageFromScreenshot(AccessibilityNodeInfo buttonNode, Bitmap screenShotBM) {
@@ -222,7 +224,8 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         System.out.println(mediator.getElement());
         if (!currentElement.second.equals(mediator.getElement().second)) {
             currentElement = mediator.getElement();
-            Log.e(TAG, "updating element");
+            Log.e(TAG, "updating on accessibility element");
+            Log.e(TAG, currentElement.second);
             // currentElement is now complete, can be sent to TalkBack
             announceTextFromEvent(currentElement.second);
         }

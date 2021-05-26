@@ -78,7 +78,7 @@ public class ModelService extends Service implements ColleagueInterface {
             currentElement = mediator.getElement();
             runPredication();
         }
-        Log.e(TAG, "updating element");
+        Log.e(TAG, "updating element on model");
     }
 
     public ModelService getSelf() {
