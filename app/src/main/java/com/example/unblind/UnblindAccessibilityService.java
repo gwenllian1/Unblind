@@ -125,16 +125,16 @@ public class UnblindAccessibilityService extends AccessibilityService implements
             return;
         }
 
-        if (mBound) {
-                try {
-                    InputStream inputStream = this.getAssets().open("86.png");
-                    Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
-                    Log.e(TAG, "setting on mediator");
-                    mediator.setElement(new Pair<Bitmap, String>(bitmap, "message"));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-        }
+//        if (mBound) {
+//                try {
+//                    InputStream inputStream = this.getAssets().open("86.png");
+//                    Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+//                    Log.e(TAG, "setting on mediator");
+//                    mediator.setElement(new Pair<Bitmap, String>(bitmap, "message"));
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+//        }
 
         // From this point, we can assume the source UI element is an image button
         // which has been clicked/tapped
@@ -146,7 +146,11 @@ public class UnblindAccessibilityService extends AccessibilityService implements
                 final ColorSpace colorSpace = screenshot.getColorSpace();
                 Bitmap screenShotBM = Bitmap.wrapHardwareBuffer(hardwareBuffer, colorSpace);
                 hardwareBuffer.close();
-                Bitmap buttonImage = getButtonImageFromScreenshot(source, screenShotBM);
+                Bitmap buttonImage = getButtonImageFromScreenshot(source, screenShotBM).copy(Bitmap.Config.RGBA_F16, true);
+                Log.e(TAG, "setting on mediator");
+                if (mBound) {
+                    mediator.setElement(new Pair<Bitmap, String>(buttonImage, "message"));
+                }
                 source.recycle();
                 // TODO: Send buttonImage to backend for processing here
                 // TODO: 'Speak' the returned text/description for buttonImage
