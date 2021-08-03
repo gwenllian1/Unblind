@@ -19,6 +19,7 @@ public class TfliteClassifier {
     }
 
     public String runObjectDetection(Bitmap bitmap) throws IOException {
+        bitmap = Bitmap.createScaledBitmap(bitmap, 224, 224, false);
         TensorImage image = TensorImage.fromBitmap(bitmap);
         ObjectDetector.ObjectDetectorOptions options = ObjectDetector.ObjectDetectorOptions.builder()
                 .setMaxResults(1)
