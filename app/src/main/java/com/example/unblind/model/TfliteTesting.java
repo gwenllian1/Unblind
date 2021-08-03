@@ -37,7 +37,9 @@ public class TfliteTesting {
      */
     public TfliteTesting(Context context) throws IOException {
         this.context = context;   // store context
+        System.out.println("Start testing");
         main(new String[]{"test", "test"}); // call main function ???
+        System.out.println("Testing complete");
     }
 
 
@@ -49,8 +51,11 @@ public class TfliteTesting {
      */
     public void main(String[] args) throws IOException {
         loadClassifier();
+        System.out.println("Classifier loaded succesfully");
         loadImages();
+        System.out.println("Images loaded succesfully");
         runPrediction();
+        System.out.println("Prediction ran succesfully");
         displayResult();
     }
 
@@ -59,6 +64,7 @@ public class TfliteTesting {
      */
     public void loadClassifier() {
         // use the function provided by Utils class
+        System.out.println("Start load classifier");
         tfliteClassifier = new TfliteClassifier(context);
     }
 
@@ -67,11 +73,14 @@ public class TfliteTesting {
      * and file name for whichever available image name.
      */
     public void loadImages() {
+        System.out.println("Start load images");
         for (String imageFileName : imageFileNames) {         // loop through filenames
             Bitmap tempBitmap = null;   // initialize a bitmap for temporary storing loaded result
             try {   // try if file is available
                 inputStream = context.getAssets().open(imageFileName);  // get the file
+                System.out.println("Opened image");
                 tempBitmap = BitmapFactory.decodeStream(inputStream);   // store in the temporary bitmap
+                System.out.println("Decoded image");
             } catch (IOException e) {   // catch error
                 e.printStackTrace();
             }
@@ -89,6 +98,7 @@ public class TfliteTesting {
      * and store the output in the prediction array
      */
     public void runPrediction() throws IOException {
+        System.out.println("Start run prediction");
         int index = 0;
         for (Bitmap bitmap : testImages) {     // loop through all bitmap
             String result = tfliteClassifier.runObjectDetection(bitmap);     // predict the bitmap
@@ -102,6 +112,7 @@ public class TfliteTesting {
      * This function will log all the result into the terminal
      */
     public void displayResult() {
+        System.out.println("Start displaying results");
         for (String prediction : predictions) {
             Log.d("Team 3 Model Result", prediction);
         }
