@@ -7,7 +7,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.ColorSpace;
 import android.graphics.Rect;
 import android.hardware.HardwareBuffer;
@@ -25,8 +24,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -160,7 +157,10 @@ public class UnblindAccessibilityService extends AccessibilityService implements
                 Bitmap buttonImage = getButtonImageFromScreenshot(source, screenShotBM).copy(Bitmap.Config.RGBA_F16, true);
                 Log.e(TAG, "setting on mediator");
                 if (mBound) {
-                    mediator.setElement(new Pair<Bitmap, String>(buttonImage, "message"));
+                    mediator.pushElementToIncoming(new Pair<Bitmap, String>(buttonImage, "message"));
+                    if (!mediator.checkIncomingSizeMoreThanOne()){
+                        mediator.notifyObservers();
+                    }
                 }
                 source.recycle();
                 // TODO: Send buttonImage to backend for processing here
@@ -221,13 +221,16 @@ public class UnblindAccessibilityService extends AccessibilityService implements
     @Override
     public void update() {
         System.out.println(currentElement);
-        System.out.println(mediator.getElement());
-        if (!currentElement.second.equals(mediator.getElement().second)) {
-            currentElement = mediator.getElement();
+        System.out.println(mediator.getElementFromOutgoing());
+        if (!currentElement.second.equals(mediator.getElementFromOutgoing().second)) {
+            currentElement = mediator.serveElementFromOutgoing();
             Log.e(TAG, "updating on accessibility element");
             Log.e(TAG, currentElement.second);
             // currentElement is now complete, can be sent to TalkBack
             announceTextFromEvent(currentElement.second);
+            if (!mediator.checkIncomingEmpty()){
+                mediator.notifyObservers();
+            }
         }
 
 

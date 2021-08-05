@@ -19,7 +19,6 @@ import android.util.Pair;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
-import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
 
 import com.example.unblind.model.Classifier;
@@ -80,8 +79,8 @@ public class ModelService extends Service implements ColleagueInterface {
 
     @Override
     public void update() {
-        if (currentElement.first != mediator.getElement().first){
-            currentElement = mediator.getElement();
+        if ((!mediator.checkIncomingEmpty()) && (currentElement.first != mediator.getElementFromIncoming().first)){
+            currentElement = mediator.serveElementFromIncoming();
             runPredication();
         }
         Log.e(TAG, "updating element on model");
@@ -132,7 +131,8 @@ public class ModelService extends Service implements ColleagueInterface {
         String result = classifier.predict(currentElement.first);     // predict the bitmap
         Log.d("Team 3 Model Result", result);
         currentElement = new Pair<Bitmap, String>(currentElement.first, result);
-        mediator.setElement(currentElement);
+        mediator.pushElementToOutgoing(currentElement);
+        mediator.notifyObservers();
     }
 
     private void startNotification() {
