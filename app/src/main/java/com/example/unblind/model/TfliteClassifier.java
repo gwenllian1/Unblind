@@ -68,13 +68,6 @@ public class TfliteClassifier {
         return result;
     }
 
-    public Outputs process(TensorImage image) {
-        TensorImage processedimage = imageProcessor.process(image);
-        Outputs outputs = new Outputs(model);
-        model.run(new Object[] {processedimage.getBuffer()}, outputs.getBuffer());
-        return outputs;
-    }
-
     public void close() {
         model.close();
     }
