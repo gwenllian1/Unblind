@@ -28,7 +28,7 @@ public class TfliteTesting {
     public TfliteClassifier tfliteClassifier;       // classifier object
     public InputStream inputStream;     // the input to load bitmap
     public ArrayList<Bitmap> testImages = new ArrayList<>();        // store all the testing image as bitmaps
-    public String[] imageFileNames = {"3.png", "56.png", "64.png", "86.png", "2002.png"};  //  <-- add image to test here ////////
+    public String[] imageFileNames = {"3.png", "56.png", "64.png", "86.png", "2002.png", "11978.png"};  //  <-- add image to test here ////////
     private ArrayList<String> availableNames = new ArrayList<>();   // mapping name for available bitmaps
     private Context context;        // context for operating function that needs
     public ArrayList<String> predictions = new ArrayList<>(); // store all outputs from model
@@ -70,7 +70,7 @@ public class TfliteTesting {
     public void loadClassifier() throws IOException {
         // use the function provided by Utils class
         System.out.println("Start load classifier");
-        tfliteClassifier = TfliteClassifier.newInstance(context);
+        tfliteClassifier = new TfliteClassifier(context);
     }
 
     /**
@@ -106,19 +106,9 @@ public class TfliteTesting {
         System.out.println("Start run prediction");
         int index = 0;
         for (Bitmap bitmap : testImages) {     // loop through all bitmap
-            TensorImage image = TensorImage.fromBitmap(bitmap);
-            TfliteClassifier.Outputs outputs = tfliteClassifier.process(image);
-            List<Category> probability = outputs.getProbabilityAsCategoryList();
-            float s = 0;
-            Category obj = null;
-            for (Category c : probability){
-                if (c.getScore() > s){
-                    s = c.getScore();
-                    obj = c;
-                }
-            }
-            String result = probability.get(probability.indexOf(obj)).getLabel();
-            String output = "Image = " + availableNames.get(index) + ", Label = " + result + ", Probability = " + s;
+            String result = tfliteClassifier.predict(bitmap);
+
+            String output = "Image = " + availableNames.get(index) + ", Label = " + result;
             predictions.add(output);
             System.out.println(output);
 
