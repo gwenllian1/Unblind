@@ -53,11 +53,6 @@ public class TfliteClassifier {
         return new TfliteClassifier(context, (new Model.Options.Builder()).build());
     }
 
-    public static TfliteClassifier newInstance(Context context, Model.Options options)
-            throws IOException {
-        return new TfliteClassifier(context, options);
-    }
-
     public Outputs process(TensorImage image) {
         TensorImage processedimage = imageProcessor.process(image);
         Outputs outputs = new Outputs(model);
