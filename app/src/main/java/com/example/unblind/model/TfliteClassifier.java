@@ -50,6 +50,24 @@ public class TfliteClassifier {
         return Model.createModel(context, "icons50model.tflite", options);
     }
 
+    public String predict(Bitmap bitmap){
+        TensorImage image = TensorImage.fromBitmap(bitmap);
+        TensorImage processedImage = imageProcessor.process(image);
+        Outputs outputs = new Outputs(model);
+        model.run(new Object[] {processedImage.getBuffer()}, outputs.getBuffer());
+        List<Category> probabilityList = outputs.getProbabilityAsCategoryList();
+        float maxScore = 0;
+        int bestPredictedCategoryIndex = 0;
+        for (Category category : probabilityList){
+            if (category.getScore() > maxScore){
+                maxScore = category.getScore();
+                bestPredictedCategoryIndex = probabilityList.indexOf(category);
+            }
+        }
+        String result = probabilityList.get(bestPredictedCategoryIndex).getLabel();
+        return result;
+    }
+
     public Outputs process(TensorImage image) {
         TensorImage processedimage = imageProcessor.process(image);
         Outputs outputs = new Outputs(model);
