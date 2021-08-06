@@ -18,8 +18,6 @@ import org.tensorflow.lite.support.label.TensorLabel;
 import org.tensorflow.lite.support.model.Model;
 import org.tensorflow.lite.support.metadata.MetadataExtractor;
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer;
-import org.tensorflow.lite.task.vision.detector.Detection;
-import org.tensorflow.lite.task.vision.detector.ObjectDetector;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -64,13 +62,6 @@ public class TfliteClassifier {
         model.close();
     }
 
-    public Outputs process(TensorBuffer image) {
-        TensorBuffer processedimage = image;
-        Outputs outputs = new Outputs(model);
-        model.run(new Object[] {processedimage.getBuffer()}, outputs.getBuffer());
-        return outputs;
-    }
-
     public class Outputs {
         private TensorBuffer probability;
 
@@ -80,10 +71,6 @@ public class TfliteClassifier {
 
         public List<Category> getProbabilityAsCategoryList() {
             return new TensorLabel(labels, probabilityPostProcessor.process(probability)).getCategoryList();
-        }
-
-        public TensorBuffer getProbabilityAsTensorBuffer() {
-            return probabilityPostProcessor.process(probability);
         }
 
         private Map<Integer, Object> getBuffer() {
