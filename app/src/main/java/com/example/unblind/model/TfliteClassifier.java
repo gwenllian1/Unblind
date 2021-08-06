@@ -30,9 +30,8 @@ public class TfliteClassifier {
     private final TensorProcessor probabilityPostProcessor;
     private final Model model;
 
-    public TfliteClassifier(Context context, Model.Options options) throws
-            IOException {
-        model = Model.createModel(context, "icons50model.tflite", options);
+    public TfliteClassifier(Context context) throws IOException {
+        model = modelBuild(context, new Model.Options.Builder().build());
         MetadataExtractor extractor = new MetadataExtractor(model.getData());
         ImageProcessor.Builder imageProcessorBuilder = new ImageProcessor.Builder()
                 .add(new ResizeOp(224, 224, ResizeOp.ResizeMethod.NEAREST_NEIGHBOR))
@@ -47,8 +46,8 @@ public class TfliteClassifier {
         labels = FileUtil.loadLabels(extractor.getAssociatedFile("labels.txt"));
     }
 
-    public static TfliteClassifier newInstance(Context context) throws IOException {
-        return new TfliteClassifier(context, (new Model.Options.Builder()).build());
+    private Model modelBuild(Context context, Model.Options options) throws IOException {
+        return Model.createModel(context, "icons50model.tflite", options);
     }
 
     public Outputs process(TensorImage image) {
