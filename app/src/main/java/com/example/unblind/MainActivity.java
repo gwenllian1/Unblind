@@ -16,6 +16,9 @@ import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.unblind.model.ModelBlackBoxTesting;
+import com.example.unblind.model.TfliteTesting;
+
+import java.io.IOException;
 
 public class MainActivity extends AppCompatActivity {
     private BackgroundViewModel mViewModel;
@@ -26,6 +29,11 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         Context context = this;
+        try {
+            TfliteTesting tfliteTesting = new TfliteTesting(context);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
 
         // get the ViewModel
