@@ -29,12 +29,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         Context context = this;
-        try {
-            TfliteTesting tfliteTesting = new TfliteTesting(context);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
 
         // get the ViewModel
         mViewModel = new ViewModelProvider(this).get(BackgroundViewModel.class);
@@ -46,7 +40,11 @@ public class MainActivity extends AppCompatActivity {
         buttonModelTest.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ModelBlackBoxTesting test = new ModelBlackBoxTesting(context);
+                try {
+                    TfliteTesting test = new TfliteTesting(context);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 Toast.makeText(context,"Test finished, check LogCat for the result",Toast.LENGTH_LONG).show();
             }
         });
