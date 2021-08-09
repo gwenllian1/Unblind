@@ -47,7 +47,7 @@ public class TfliteClassifier {
     }
 
     private Model modelBuild(Context context, Model.Options options) throws IOException {
-        return Model.createModel(context, "icons50model.tflite", options);
+        return Model.createModel(context, "model_09Aug.tflite", options);
     }
 
     public String predict(Bitmap bitmap){
