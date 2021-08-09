@@ -39,6 +39,8 @@ public class UnblindMediator {
         return IncomingQueue.isEmpty();
     }
 
+    public boolean checkOutgoingEmpty() { return OutgoingQueue.isEmpty(); }
+
     public boolean checkIncomingSizeMoreThanOne(){
         return (IncomingQueue.size() > 1);
     }

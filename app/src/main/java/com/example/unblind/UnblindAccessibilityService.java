@@ -158,6 +158,7 @@ public class UnblindAccessibilityService extends AccessibilityService implements
                 Log.e(TAG, "setting on mediator");
                 if (mBound) {
                     mediator.pushElementToIncoming(new Pair<Bitmap, String>(buttonImage, "message"));
+                    currentElement = mediator.getElementFromIncoming();
                     if (!mediator.checkIncomingSizeMoreThanOne()){
                         mediator.notifyObservers();
                     }
@@ -220,9 +221,9 @@ public class UnblindAccessibilityService extends AccessibilityService implements
 
     @Override
     public void update() {
-        System.out.println(currentElement);
-        System.out.println(mediator.getElementFromOutgoing());
-        if (!currentElement.second.equals(mediator.getElementFromOutgoing().second)) {
+        if (!mediator.checkOutgoingEmpty() && !currentElement.second.equals(mediator.getElementFromOutgoing().second)) {
+            System.out.println(currentElement);
+            System.out.println(mediator.getElementFromOutgoing());
             currentElement = mediator.serveElementFromOutgoing();
             Log.e(TAG, "updating on accessibility element");
             Log.e(TAG, currentElement.second);
