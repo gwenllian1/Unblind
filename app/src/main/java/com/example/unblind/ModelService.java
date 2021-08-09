@@ -18,7 +18,6 @@ import android.os.Build;
 import android.os.IBinder;
 import android.provider.Settings;
 import android.util.Log;
-import android.util.Pair;
 import android.view.accessibility.AccessibilityManager;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
@@ -35,7 +34,7 @@ public class ModelService extends Service implements ColleagueInterface {
     DatabaseService mService;
     UnblindMediator mediator;
     WorkManager mWorkManager;
-    Pair<Bitmap, String> currentElement = new Pair<Bitmap, String>(null, "");
+    UnblindDataObject currentElement = new UnblindDataObject(null, "", true);
     boolean mBound = false;
 
     TfliteClassifier tfliteClassifier;
@@ -84,7 +83,7 @@ public class ModelService extends Service implements ColleagueInterface {
 
     @Override
     public void update() {
-        if ((!mediator.checkIncomingEmpty()) && (currentElement.first != mediator.getElementFromIncoming().first)){
+        if ((!mediator.checkIncomingEmpty()) && (currentElement.iconImage != mediator.getElementFromIncoming().iconImage)){
             currentElement = mediator.serveElementFromIncoming();
             runPredication();
         }
@@ -135,13 +134,13 @@ public class ModelService extends Service implements ColleagueInterface {
 
 
     public void runPredication(){
-        String result = tfliteClassifier.predict(currentElement.first);     // predict the bitmap
+        String result = tfliteClassifier.predict(currentElement.iconImage);     // predict the bitmap
         Log.d("Team 3 Model Result", result);
-        currentElement = new Pair<Bitmap, String>(currentElement.first, result);
+        currentElement = new UnblindDataObject(currentElement.iconImage, result, currentElement.batchStatus);
 
         // store classified pair into cache
         Log.v(TAG, "setting in SP");
-        byte[] base64EncodedBitmap = UnblindMediator.bitmapToBytes(currentElement.first);
+        byte[] base64EncodedBitmap = UnblindMediator.bitmapToBytes(currentElement.iconImage);
         mService.setSharedData(UnblindMediator.TAG, base64EncodedBitmap, result);
 
         mediator.pushElementToOutgoing(currentElement);

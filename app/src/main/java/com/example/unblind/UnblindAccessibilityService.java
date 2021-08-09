@@ -14,7 +14,6 @@ import android.os.Build;
 import android.os.IBinder;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
-import android.util.Pair;
 import android.view.Display;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityManager;
@@ -35,7 +34,7 @@ public class UnblindAccessibilityService extends AccessibilityService implements
     private AccessibilityManager manager;
     private boolean mBound = false;
     private UnblindMediator mediator;
-    private Pair<Bitmap, String> currentElement = new Pair(null, "");
+    private UnblindDataObject currentElement = new UnblindDataObject(null, "", true);
     private TextToSpeech tts;
     private boolean ttsReady = false;
 
@@ -173,14 +172,14 @@ public class UnblindAccessibilityService extends AccessibilityService implements
                 // if the label already exists, don't notify
                 if (storedLabel != null) {
                     Log.v(TAG, "Found in SP");
-                    mediator.pushElementToOutgoing(new Pair<Bitmap, String>(buttonImage, storedLabel));
+                    mediator.pushElementToOutgoing(new UnblindDataObject(buttonImage, storedLabel, false));
                     update();
                 } else if (mBound) {
                     // else if the label hasn't been seen before, notify
                     if (ttsReady)
                         tts.speak("Processing labels", 2, null,null);
                     Log.e(TAG, "setting on mediator");
-                    mediator.pushElementToIncoming(new Pair<Bitmap, String>(buttonImage, ""));
+                    mediator.pushElementToIncoming(new UnblindDataObject(buttonImage, "", false));
                     currentElement = mediator.getElementFromIncoming();
                     if (!mediator.checkIncomingSizeMoreThanOne()) {
                         mediator.notifyObservers();
@@ -271,9 +270,9 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         System.out.println(mediator.getElementFromOutgoing());
         currentElement = mediator.serveElementFromOutgoing();
         Log.e(TAG, "updating on accessibility element");
-        Log.e(TAG, currentElement.second);
+        Log.e(TAG, currentElement.iconLabel);
         // currentElement is now complete, can be sent to TalkBack
-        announceTextFromEvent(currentElement.second);
+        announceTextFromEvent(currentElement.iconLabel);
         // if the in queue is not empty, notify observers
         if (!mediator.checkIncomingEmpty()) {
             mediator.notifyObservers();
