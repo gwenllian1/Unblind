@@ -138,14 +138,6 @@ public class UnblindAccessibilityService extends AccessibilityService implements
             }
             return;
         }
-        String currentNodeClassName = (String) source.getClassName();
-
-        if (currentNodeClassName == null || !currentNodeClassName.equals("android.widget.ImageButton")) {
-            Log.v(TAG, "currentNodeClassName is not android.widget.ImageButton: " + currentNodeClassName);
-            source.recycle();
-            return;
-        }
-
 
         // From this point, we can assume the source UI element is an image button
         // which has been clicked/tapped
