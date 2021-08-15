@@ -36,18 +36,18 @@ public class MainActivity extends AppCompatActivity {
         // start the model service when the app is launched
         Intent mServiceIntent = new Intent(this, ModelService.class);
         getApplicationContext().startService(mServiceIntent);
-        buttonModelTest = findViewById(R.id.button2);
-        buttonModelTest.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                try {
-                    TfliteTesting test = new TfliteTesting(context);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                Toast.makeText(context,"Test finished, check LogCat for the result",Toast.LENGTH_LONG).show();
-            }
-        });
+//        buttonModelTest = findViewById(R.id.button2);
+//        buttonModelTest.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                try {
+//                    TfliteTesting test = new TfliteTesting(context);
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+//                Toast.makeText(context,"Test finished, check LogCat for the result",Toast.LENGTH_LONG).show();
+//            }
+//        });
 
 
     }
