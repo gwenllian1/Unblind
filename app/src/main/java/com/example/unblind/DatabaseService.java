@@ -11,7 +11,7 @@ import android.util.Log;
 public class DatabaseService extends Service {
     private final IBinder binder = new LocalBinder();
     private static final String TAG = "UnBlindDatabaseService";
-//     AppDatabase db = AppDatabase.getInstance(this);
+    //     AppDatabase db = AppDatabase.getInstance(this);
 //     UIElementDao uiElementDao = db.getUIElementDao();
     private UnblindMediator unblindMediator = new UnblindMediator();
 

@@ -6,8 +6,8 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.ColorSpace;
 import android.graphics.Rect;
 import android.hardware.HardwareBuffer;
@@ -25,13 +25,14 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class UnblindAccessibilityService extends AccessibilityService implements ColleagueInterface {
     private static final String TAG = "UnBlind AS";
-    private static final String DEFAULT_TEXT = "NULL";
     private AccessibilityManager manager;
     DatabaseService mService;
     private boolean mBound = false;
@@ -73,27 +74,19 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         // Crop the relevant portion of the screenshot into a new Bitmap
         Bitmap buttonBitmap = Bitmap.createBitmap(screenShotBM, rectTest.left, rectTest.top, rectTest.width(), rectTest.height());
 
-        String encoded = bitmapToString(buttonBitmap);
         // Get a Base64 encoded PNG of the button bitmap
-//        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-//        buttonBitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream);
-//        byte[] byteArray = byteArrayOutputStream.toByteArray();
-//
-//        // Log the PNG
-//        String encoded = Base64.encodeToString(byteArray, Base64.DEFAULT);
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        buttonBitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream);
+        byte[] byteArray = byteArrayOutputStream.toByteArray();
+
+        // Log the PNG
+        String encoded = Base64.encodeToString(byteArray, Base64.DEFAULT);
         Log.v(TAG, "Screenshot result for button: " + encoded);
         return buttonBitmap;
     }
 
-    private String bitmapToString(Bitmap bitmap) {
-        // Get a Base64 encoded PNG of the button bitmap
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream);
-        byte[] byteArray = byteArrayOutputStream.toByteArray();
-        return Base64.encodeToString(byteArray, Base64.DEFAULT);
-    }
     @RequiresApi(api = Build.VERSION_CODES.O)
-  private void announceTextFromEvent(String text) {
+    private void announceTextFromEvent(String text) {
         if (manager.isEnabled()) {
             AccessibilityEvent e = AccessibilityEvent.obtain();
             e.setEventType(AccessibilityEvent.TYPE_ANNOUNCEMENT);
@@ -165,25 +158,9 @@ public class UnblindAccessibilityService extends AccessibilityService implements
                 Bitmap screenShotBM = Bitmap.wrapHardwareBuffer(hardwareBuffer, colorSpace);
                 hardwareBuffer.close();
                 Bitmap buttonImage = getButtonImageFromScreenshot(source, screenShotBM).copy(Bitmap.Config.RGBA_F16, true);
-
-                // check screenshot against storage before notifying
-                String base64EncodedBitmap = bitmapToString(buttonImage);
-                SharedPreferences sharedPreferences = getSharedPreferences(UnblindMediator.TAG, MODE_PRIVATE);
-                String storedLabel = sharedPreferences.getString(base64EncodedBitmap, DEFAULT_TEXT);
-
-                // if the label already exists, don't notify
-                if (!storedLabel.equals(DEFAULT_TEXT)) {
-                    mediator.pushElementToOutgoing(new Pair<Bitmap, String>(buttonImage, storedLabel));
-                    update();
-                }
-                // else if the label hasn't been seen before, notify
-                else if (mBound) {
-                    Log.e(TAG, "setting on mediator");
-                    mediator.pushElementToIncoming(new Pair<Bitmap, String>(buttonImage, "message"));
-                    currentElement = mediator.getElementFromIncoming();
-                    if (!mediator.checkIncomingSizeMoreThanOne()){
-                        mediator.notifyObservers();
-                    }
+                Log.e(TAG, "setting on mediator");
+                if (mBound) {
+                    mediator.setElement(new Pair<Bitmap, String>(buttonImage, "message"));
                 }
                 source.recycle();
                 // TODO: Send buttonImage to backend for processing here
@@ -243,19 +220,14 @@ public class UnblindAccessibilityService extends AccessibilityService implements
 
     @Override
     public void update() {
-        // Update mediator if the out queue is not empty AND the outgoing element is not the same as the current element?
-        if (!mediator.checkOutgoingEmpty() && !currentElement.second.equals(mediator.getElementFromOutgoing().second)) {
-            System.out.println(currentElement);
-            System.out.println(mediator.getElementFromOutgoing());
-            currentElement = mediator.serveElementFromOutgoing();
+        System.out.println(currentElement);
+        System.out.println(mediator.getElement());
+        if (!currentElement.second.equals(mediator.getElement().second)) {
+            currentElement = mediator.getElement();
             Log.e(TAG, "updating on accessibility element");
             Log.e(TAG, currentElement.second);
             // currentElement is now complete, can be sent to TalkBack
             announceTextFromEvent(currentElement.second);
-            // if the in queue is not empty, notify observers
-            if (!mediator.checkIncomingEmpty()){
-                mediator.notifyObservers();
-            }
         }
 
 

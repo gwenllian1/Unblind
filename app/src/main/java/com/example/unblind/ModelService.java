@@ -19,6 +19,7 @@ import android.util.Pair;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
+import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
 
 import com.example.unblind.model.Classifier;
@@ -42,7 +43,7 @@ public class ModelService extends Service implements ColleagueInterface {
             String absolutePath = Utils.assetFilePath(getOuter(), strings[0]); //get absolute path
             return new Classifier(absolutePath);
         }
-            @Override
+        @Override
         protected void onPostExecute(Classifier result) {
             Log.e(TAG, "onPostExecute: ");
             setClassifier(result);
@@ -79,8 +80,8 @@ public class ModelService extends Service implements ColleagueInterface {
 
     @Override
     public void update() {
-        if ((!mediator.checkIncomingEmpty()) && (currentElement.first != mediator.getElementFromIncoming().first)){
-            currentElement = mediator.serveElementFromIncoming();
+        if (currentElement.first != mediator.getElement().first){
+            currentElement = mediator.getElement();
             runPredication();
         }
         Log.e(TAG, "updating element on model");
@@ -131,8 +132,7 @@ public class ModelService extends Service implements ColleagueInterface {
         String result = classifier.predict(currentElement.first);     // predict the bitmap
         Log.d("Team 3 Model Result", result);
         currentElement = new Pair<Bitmap, String>(currentElement.first, result);
-        mediator.pushElementToOutgoing(currentElement);
-        mediator.notifyObservers();
+        mediator.setElement(currentElement);
     }
 
     private void startNotification() {

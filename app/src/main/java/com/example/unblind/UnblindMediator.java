@@ -4,15 +4,11 @@ import android.graphics.Bitmap;
 import android.util.Log;
 import android.util.Pair;
 
-import java.util.ArrayDeque;
-import java.util.Queue;
 import java.util.ArrayList;
 
 public class UnblindMediator {
     private ArrayList<ColleagueInterface> observers;
-    private Queue<Pair<Bitmap, String>> IncomingQueue = new ArrayDeque<>();
-    private Queue<Pair<Bitmap, String>> OutgoingQueue = new ArrayDeque<>();
-//    private Pair<Bitmap, String> currentElement = new Pair(null, null);
+    private Pair<Bitmap, String> currentElement = new Pair(null, null);
     public static final String TAG = "UnblindMediator";
 
     public UnblindMediator() {
@@ -29,48 +25,20 @@ public class UnblindMediator {
         observers.remove(observer);
     }
 
-    public void notifyObservers(){
+    private void notifyObserver(){
         for (ColleagueInterface observer : observers) {
             observer.update();
         }
     }
 
-    public boolean checkIncomingEmpty(){
-        return IncomingQueue.isEmpty();
-    }
-
-    public boolean checkOutgoingEmpty() { return OutgoingQueue.isEmpty(); }
-
-    public boolean checkIncomingSizeMoreThanOne(){
-        return (IncomingQueue.size() > 1);
-    }
-
-    public void pushElementToIncoming(Pair<Bitmap, String> element){
-        IncomingQueue.add(element);
+    public void setElement(Pair<Bitmap, String> element){
+        currentElement = element;
         Log.e(TAG, "setting element");
+        notifyObserver();
     }
 
-    public Pair<Bitmap, String> getElementFromIncoming(){
-        return IncomingQueue.peek();
+    public Pair<Bitmap, String> getElement(){
+        return currentElement;
     }
-
-    public Pair<Bitmap, String> serveElementFromIncoming(){
-        return IncomingQueue.remove();
-    }
-
-    public void pushElementToOutgoing(Pair<Bitmap, String> element){
-        OutgoingQueue.add(element);
-        Log.e(TAG, "setting element");
-    }
-
-    public Pair<Bitmap, String> getElementFromOutgoing(){
-        return OutgoingQueue.peek();
-    }
-
-    public Pair<Bitmap, String> serveElementFromOutgoing(){
-        return OutgoingQueue.remove();
-    }
-
-
 
 }
