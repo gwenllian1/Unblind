@@ -30,7 +30,7 @@ public class TfliteClassifier {
     private TensorProcessor probabilityPostProcessor;
     private Model model;
 
-    public TfliteClassifier(Context context) throws IOException {
+    public TfliteClassifier(Context context) {
         setup(context);
     }
 

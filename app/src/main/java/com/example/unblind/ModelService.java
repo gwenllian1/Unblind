@@ -23,6 +23,7 @@ import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
 
 import com.example.unblind.model.Classifier;
+import com.example.unblind.model.TfliteClassifier;
 import com.example.unblind.model.Utils;
 
 public class ModelService extends Service implements ColleagueInterface {
@@ -32,19 +33,17 @@ public class ModelService extends Service implements ColleagueInterface {
     WorkManager mWorkManager;
     Pair<Bitmap, String> currentElement = new Pair<Bitmap, String>(null, "");
     boolean mBound = false;
-    static final String MODEL_NAME = "labeldroid.pt";
 
-    Classifier classifier;
+    TfliteClassifier tfliteClassifier;
 
-    private class GetClassifier extends AsyncTask<String, Integer, Classifier> {
+    private class GetClassifier extends AsyncTask<String, Integer, TfliteClassifier> {
 
         @Override
-        protected Classifier doInBackground(String... strings) {
-            String absolutePath = Utils.assetFilePath(getOuter(), strings[0]); //get absolute path
-            return new Classifier(absolutePath);
+        protected TfliteClassifier doInBackground(String... strings) {
+            return new TfliteClassifier(getOuter());
         }
         @Override
-        protected void onPostExecute(Classifier result) {
+        protected void onPostExecute(TfliteClassifier result) {
             Log.e(TAG, "onPostExecute: ");
             setClassifier(result);
         }
@@ -54,9 +53,9 @@ public class ModelService extends Service implements ColleagueInterface {
         }
     }
 
-    private void setClassifier(Classifier classifier) {
+    private void setClassifier(TfliteClassifier tfliteClassifier) {
         Log.e(TAG, "classifier set");
-        this.classifier = classifier;
+        this.tfliteClassifier = tfliteClassifier;
     }
 
     private final ServiceConnection mConnection = new ServiceConnection() {
@@ -108,7 +107,7 @@ public class ModelService extends Service implements ColleagueInterface {
         Log.e(TAG, "Model service started");
         super.onStartCommand(intent, flags, startId);
 //        loadClassifier();
-        new GetClassifier().execute(MODEL_NAME);
+        new GetClassifier().execute();
         // bind to DatabaseService
         Intent newIntent = new Intent(this, DatabaseService.class);
         startService(newIntent);
@@ -121,15 +120,15 @@ public class ModelService extends Service implements ColleagueInterface {
 
 
     // Client methods go here
-    public void loadClassifier(){
-        // use the function provided by Utils class
-        String absolutePath = Utils.assetFilePath(this, "labeldroid.pt"); //get absolute path
-        classifier = new Classifier(absolutePath);
-    }
+//    public void loadClassifier(){
+//        // use the function provided by Utils class
+//        String absolutePath = Utils.assetFilePath(this, "labeldroid.pt"); //get absolute path
+//        classifier = new Classifier(absolutePath);
+//    }
 
 
     public void runPredication(){
-        String result = classifier.predict(currentElement.first);     // predict the bitmap
+        String result = tfliteClassifier.predict(currentElement.first);     // predict the bitmap
         Log.d("Team 3 Model Result", result);
         currentElement = new Pair<Bitmap, String>(currentElement.first, result);
         mediator.setElement(currentElement);
