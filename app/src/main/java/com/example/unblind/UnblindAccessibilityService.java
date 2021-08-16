@@ -157,7 +157,7 @@ public class UnblindAccessibilityService extends AccessibilityService implements
                 final ColorSpace colorSpace = screenshot.getColorSpace();
                 Bitmap screenShotBM = Bitmap.wrapHardwareBuffer(hardwareBuffer, colorSpace);
                 hardwareBuffer.close();
-                Bitmap buttonImage = getButtonImageFromScreenshot(source, screenShotBM).copy(Bitmap.Config.RGBA_F16, true);
+                Bitmap buttonImage = getButtonImageFromScreenshot(source, screenShotBM).copy(Bitmap.Config.ARGB_8888, true);
                 Log.e(TAG, "setting on mediator");
                 if (mBound) {
                     mediator.setElement(new Pair<Bitmap, String>(buttonImage, "message"));

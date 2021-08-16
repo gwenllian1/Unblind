@@ -16,6 +16,9 @@ import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.unblind.model.ModelBlackBoxTesting;
+import com.example.unblind.model.TfliteTesting;
+
+import java.io.IOException;
 
 public class MainActivity extends AppCompatActivity {
     private BackgroundViewModel mViewModel;
@@ -38,7 +41,11 @@ public class MainActivity extends AppCompatActivity {
         buttonModelTest.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ModelBlackBoxTesting test = new ModelBlackBoxTesting(context);
+                try {
+                    TfliteTesting test = new TfliteTesting(context);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 Toast.makeText(context,"Test finished, check LogCat for the result",Toast.LENGTH_LONG).show();
             }
         });
