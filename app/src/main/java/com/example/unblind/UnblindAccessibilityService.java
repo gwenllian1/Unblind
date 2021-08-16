@@ -31,7 +31,6 @@ import java.util.concurrent.TimeUnit;
 
 public class UnblindAccessibilityService extends AccessibilityService implements ColleagueInterface {
     private static final String TAG = "UnBlind AS";
-    private static final String DEFAULT_TEXT = "NULL";
     private AccessibilityManager manager;
     DatabaseService mService;
     private boolean mBound = false;
@@ -169,10 +168,10 @@ public class UnblindAccessibilityService extends AccessibilityService implements
                 // check screenshot against storage before notifying
                 String base64EncodedBitmap = bitmapToString(buttonImage);
                 SharedPreferences sharedPreferences = getSharedPreferences(UnblindMediator.TAG, MODE_PRIVATE);
-                String storedLabel = sharedPreferences.getString(base64EncodedBitmap, DEFAULT_TEXT);
+                String storedLabel = sharedPreferences.getString(base64EncodedBitmap, null);
 
                 // if the label already exists, don't notify
-                if (!storedLabel.equals(DEFAULT_TEXT)) {
+                if (storedLabel != null) {
                     mediator.pushElementToOutgoing(new Pair<Bitmap, String>(buttonImage, storedLabel));
                     update();
                 }

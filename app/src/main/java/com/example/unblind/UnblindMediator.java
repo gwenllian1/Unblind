@@ -1,9 +1,12 @@
 package com.example.unblind;
 
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.util.Base64;
 import android.util.Log;
 import android.util.Pair;
 
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayDeque;
 import java.util.Queue;
 import java.util.ArrayList;
@@ -14,6 +17,19 @@ public class UnblindMediator {
     private Queue<Pair<Bitmap, String>> OutgoingQueue = new ArrayDeque<>();
 //    private Pair<Bitmap, String> currentElement = new Pair(null, null);
     public static final String TAG = "UnblindMediator";
+
+    public static String bitmapToString(Bitmap bitmap) {
+        // Get a Base64 encoded PNG of the button bitmap
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream);
+        byte[] byteArray = byteArrayOutputStream.toByteArray();
+        return Base64.encodeToString(byteArray, Base64.DEFAULT);
+    }
+
+    public static Bitmap stringToBitmap(String string) {
+        byte[] decodedString = Base64.decode(string, Base64.DEFAULT);
+        return BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+    }
 
     public UnblindMediator() {
         this.observers = new ArrayList<ColleagueInterface>();
