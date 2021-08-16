@@ -25,25 +25,34 @@ import java.util.List;
 import java.util.Map;
 
 public class TfliteClassifier {
-    private final ImageProcessor imageProcessor;
-    private final List<String> labels;
-    private final TensorProcessor probabilityPostProcessor;
-    private final Model model;
+    private ImageProcessor imageProcessor;
+    private List<String> labels;
+    private TensorProcessor probabilityPostProcessor;
+    private Model model;
 
     public TfliteClassifier(Context context) throws IOException {
-        model = modelBuild(context, new Model.Options.Builder().build());
-        MetadataExtractor extractor = new MetadataExtractor(model.getData());
-        ImageProcessor.Builder imageProcessorBuilder = new ImageProcessor.Builder()
-                .add(new ResizeOp(224, 224, ResizeOp.ResizeMethod.NEAREST_NEIGHBOR))
-                .add(new NormalizeOp(new float[] {0.0f}, new float[] {255.0f}))
-                .add(new QuantizeOp(0f, 0.003921569f))
-                .add(new CastOp(DataType.UINT8));
-        imageProcessor = imageProcessorBuilder.build();
-        TensorProcessor.Builder probabilityPostProcessorBuilder = new TensorProcessor.Builder()
-                .add(new DequantizeOp((float)0, (float)0.00390625))
-                .add(new NormalizeOp(new float[] {0.0f}, new float[] {1.0f}));
-        probabilityPostProcessor = probabilityPostProcessorBuilder.build();
-        labels = FileUtil.loadLabels(extractor.getAssociatedFile("labels.txt"));
+        setup(context);
+    }
+
+    private void setup(Context context){
+        try {
+            model = modelBuild(context, new Model.Options.Builder().build());
+            MetadataExtractor extractor = null;
+            extractor = new MetadataExtractor(model.getData());
+            ImageProcessor.Builder imageProcessorBuilder = new ImageProcessor.Builder()
+                    .add(new ResizeOp(224, 224, ResizeOp.ResizeMethod.NEAREST_NEIGHBOR))
+                    .add(new NormalizeOp(new float[] {0.0f}, new float[] {255.0f}))
+                    .add(new QuantizeOp(0f, 0.003921569f))
+                    .add(new CastOp(DataType.UINT8));
+            imageProcessor = imageProcessorBuilder.build();
+            TensorProcessor.Builder probabilityPostProcessorBuilder = new TensorProcessor.Builder()
+                    .add(new DequantizeOp((float)0, (float)0.00390625))
+                    .add(new NormalizeOp(new float[] {0.0f}, new float[] {1.0f}));
+            probabilityPostProcessor = probabilityPostProcessorBuilder.build();
+            labels = FileUtil.loadLabels(extractor.getAssociatedFile("labels.txt"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private Model modelBuild(Context context, Model.Options options) throws IOException {
