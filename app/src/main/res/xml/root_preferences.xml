@@ -8,7 +8,7 @@
 
         <SwitchPreferenceCompat
             android:id="@+id/ActivateSwitch"
-            app:defaultValue="true"
+            app:defaultValue="false"
             app:key="@string/activate_service_key"
             app:title="@string/activate_service_title"
 

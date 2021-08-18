@@ -3,6 +3,8 @@ package com.example.unblind;
 import android.content.Intent;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.view.View;
+import android.widget.TextView;
 
 import androidx.core.content.ContextCompat;
 import androidx.preference.Preference;
@@ -43,8 +45,6 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         });
 
     }
-
-
 
 
 }

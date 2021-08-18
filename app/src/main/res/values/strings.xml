@@ -47,4 +47,6 @@
     <string name="accessibility_service_label">Unblind</string>
     <string name="accessibility_service_description">Provides machine learning generated alt-text to unlabelled UI icons to be read by screen readers.</string>
     <string name="turn_off">Turn Off</string>
+    <string name="service_status_off">Service Status: OFF</string>
+    <string name="service_status_on">Service Status: ON</string>
 </resources>
