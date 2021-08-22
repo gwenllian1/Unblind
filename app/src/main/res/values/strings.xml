@@ -10,9 +10,18 @@
     <string name="hello_first_fragment">Hello first fragment</string>
     <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
     <string name="background_work">Background Work!</string>
+
+    <!-- Keys/IDs -->
+    <string name="activate_service_key">Activate</string>
+    <string name="activate_notification_key">Activation Notification</string>
+    <string name="activate_screen_key">Activate Screen</string>
+
     <!-- Preference Titles -->
     <string name="preferences_header">Preferences</string>
     <string name="sync_header">Sync</string>
+    <string name="activate_service_title">Activate Service</string>
+    <string name="activate_notification_title">Activate Notifications</string>
+    <string name="activate_screen_title">Activate Screen Reader</string>
 
     <!-- Preference title for accessibility button (For integration with Team 2)-->
     <string name="accessibility_button">Button</string>
@@ -24,10 +33,10 @@
     <!-- Sync Preferences -->
     <string name="sync_title">Sync email periodically</string>
     <string name="attachment_title">Download incoming attachments</string>
-    <string name="attachment_summary_on">Automatically download attachments for incoming emails
-    </string>
-    <string name="attachment_summary_off">Only download attachments when manually requested</string>
-
+    <string name="activate_notification_summary_on">Notifications turned on</string>
+    <string name="activate_notification_summary_off">Turn on notifications</string>
+    <string name="activate_screen_summary_on">Screen Reader turned on</string>
+    <string name="activate_screen_summary_off">Turn on Screen Reader</string>
     <string name="example_service_running">Example service is running</string>
     <string name="example_service_label">Example Service</string>
     <string name="example_service_stopped">Example service has stopped.</string>
@@ -37,4 +46,5 @@
     <string name="channel_description">Just an example channel</string>
     <string name="accessibility_service_label">Unblind</string>
     <string name="accessibility_service_description">Provides machine learning generated alt-text to unlabelled UI icons to be read by screen readers.</string>
+    <string name="turn_off">Turn Off</string>
 </resources>

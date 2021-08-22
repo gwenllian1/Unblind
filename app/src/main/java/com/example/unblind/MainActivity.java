@@ -1,31 +1,54 @@
 // GitHub
 package com.example.unblind;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.example.unblind.model.ModelBlackBoxTesting;
+import com.example.unblind.model.TfliteTesting;
+
+import java.io.IOException;
+
 public class MainActivity extends AppCompatActivity {
     private BackgroundViewModel mViewModel;
-
+    Button buttonModelTest;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        Context context = this;
 
-        Intent serviceIntent = new Intent(this, ExampleService.class);
-        ContextCompat.startForegroundService(this, serviceIntent);
 
         // get the ViewModel
         mViewModel = new ViewModelProvider(this).get(BackgroundViewModel.class);
 
+        // start the model service when the app is launched
+        Intent mServiceIntent = new Intent(this, ModelService.class);
+        getApplicationContext().startService(mServiceIntent);
+        buttonModelTest = findViewById(R.id.button2);
+        buttonModelTest.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+                    TfliteTesting test = new TfliteTesting(context);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                Toast.makeText(context,"Test finished, check LogCat for the result",Toast.LENGTH_LONG).show();
+            }
+        });
 
 
     }
@@ -56,7 +79,6 @@ public class MainActivity extends AppCompatActivity {
 
     public void startBackgroundTask(View view) {
         // Ask the ViewModel to access the database
-        System.out.println("asdasdasdasd");
         mViewModel.accessDatabase();
     }
 
