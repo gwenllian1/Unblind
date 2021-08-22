@@ -13,6 +13,7 @@ import android.graphics.Rect;
 import android.hardware.HardwareBuffer;
 import android.os.Build;
 import android.os.IBinder;
+import android.speech.tts.TextToSpeech;
 import android.util.Base64;
 import android.util.Log;
 import android.util.Pair;
@@ -27,6 +28,7 @@ import androidx.annotation.RequiresApi;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Locale;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -38,7 +40,7 @@ public class UnblindAccessibilityService extends AccessibilityService implements
     private boolean mBound = false;
     private UnblindMediator mediator;
     private Pair<Bitmap, String> currentElement = new Pair(null, "");
-
+    private TextToSpeech tts;
     private final ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(10, 10, 15, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
     private final ServiceConnection mConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
@@ -87,17 +89,18 @@ public class UnblindAccessibilityService extends AccessibilityService implements
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void announceTextFromEvent(String text) {
-        if (manager.isEnabled()) {
-            AccessibilityEvent e = AccessibilityEvent.obtain();
-            e.setEventType(AccessibilityEvent.TYPE_ANNOUNCEMENT);
-            e.setClassName(getClass().getName());
-            e.getText().add(text);
-            manager.sendAccessibilityEvent(e);
-            Log.e(TAG, "No description found. Custom description added here");
-        }
-        else {
-            Log.e(TAG, "For some reason the manager did not work");
-        }
+        tts.speak(text, 1, null,null);
+        //        if (manager.isEnabled()) {
+//            AccessibilityEvent e = AccessibilityEvent.obtain();
+//            e.setEventType(AccessibilityEvent.TYPE_ANNOUNCEMENT);
+//            e.setClassName(getClass().getName());
+//            e.getText().add(text);
+//            manager.sendAccessibilityEvent(e);
+//            Log.e(TAG, "No description found. Custom description added here");
+//        }
+//        else {
+//            Log.e(TAG, "For some reason the manager did not work");
+//        }
     }
 
 //    @RequiresApi(api = Build.VERSION_CODES.O)
@@ -145,7 +148,7 @@ public class UnblindAccessibilityService extends AccessibilityService implements
             source.recycle();
             return;
         }
-
+        tts.speak("Processing labels", 2, null,null);
 
         // From this point, we can assume the source UI element is an image button
         // which has been clicked/tapped
@@ -216,6 +219,19 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         Intent intent = new Intent(this, DatabaseService.class);
         startService(intent);
         bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+        tts = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+                Log.d("Test","123: " + status);
+                if (status != TextToSpeech.ERROR) {
+                    Log.d("Test","123");
+                    // Setting locale, speech rate and voice pitch
+                    tts.setLanguage(Locale.UK);
+                    tts.setSpeechRate(1.0f);
+                    tts.setPitch(1.0f);
+                }
+            }
+        });
     }
 
     @Override
