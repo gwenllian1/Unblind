@@ -137,7 +137,7 @@ public class ModelService extends Service implements ColleagueInterface {
 
         // store classified pair into cache
         Log.v(TAG, "setting in SP");
-        String base64EncodedBitmap = UnblindMediator.bitmapToString(currentElement.first);
+        byte[] base64EncodedBitmap = UnblindMediator.bitmapToBytes(currentElement.first);
         mService.setSharedData(UnblindMediator.TAG, base64EncodedBitmap, result);
 
         mediator.pushElementToOutgoing(currentElement);
