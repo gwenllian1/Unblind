@@ -34,15 +34,31 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class UnblindAccessibilityService extends AccessibilityService implements ColleagueInterface {
+
+    // Class Variables
     private static final String TAG = "UnBlind AS";
-    private AccessibilityManager manager;
-    DatabaseService mService;
     private boolean mBound = false;
     private UnblindMediator mediator;
     private Pair<Bitmap, String> currentElement = new Pair(null, "");
     private TextToSpeech tts;
-    private final ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(10, 10, 15, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
+    private AccessibilityManager manager;
+    DatabaseService mService;
+
+    private final ThreadPoolExecutor threadPoolExecutor =
+            new ThreadPoolExecutor(10, 10, 15,
+                    TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
+
+    /**
+     * Service Connection Function
+     * Handles service connection and disconnection,
+     */
     private final ServiceConnection mConnection = new ServiceConnection() {
+
+        /**
+         * Connecting Service to Unblind Database
+         * @param className: Class Name
+         * @param service: Service
+         */
         public void onServiceConnected(ComponentName className, IBinder service) {
             DatabaseService.LocalBinder binder = (DatabaseService.LocalBinder) service;
             mService = binder.getService();
@@ -52,18 +68,31 @@ public class UnblindAccessibilityService extends AccessibilityService implements
 
         }
 
-
+        /**
+         * On Service Disconnection Function: Logging disconnection
+         * @param className: Class Name
+         */
         public void onServiceDisconnected(ComponentName className) {
             Log.e(TAG, "databaseServiceDisconnected");
             mBound = false;
         }
     };
 
+    /**
+     *  Setting Mediator function
+     * @param mediator: Mediator
+     */
     private void setMediator(UnblindMediator mediator) {
         this.mediator = mediator;
         mediator.addObserver(this);
     }
 
+    /**
+     * Converts screenshot of button and returns it as bitmap to use later in ModelService
+     * @param buttonNode: Button Node
+     * @param screenShotBM: Screenshot BitMap
+     * @return : BitMap of button image
+     */
     private Bitmap getButtonImageFromScreenshot(AccessibilityNodeInfo buttonNode, Bitmap screenShotBM) {
         Rect rectTest = new Rect();
         // Copy the dimensions of the button to the rectTest object
@@ -87,9 +116,18 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         return buttonBitmap;
     }
 
+    /**
+     * Takes in given label and reads it out using Text to Speech(TTS), and also Talkback usage hints
+     * @param text: string which represents new label, given by how LabelDroid
+     *            interprets the unlabelled button
+     */
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void announceTextFromEvent(String text) {
+        // Adding text to queue for TTS
         tts.speak(text, 1, null,null);
+        tts.speak("Double tap to activate.", 1, null,null);
+        // TODO: Changing usage hints based on type of button
+
         //        if (manager.isEnabled()) {
 //            AccessibilityEvent e = AccessibilityEvent.obtain();
 //            e.setEventType(AccessibilityEvent.TYPE_ANNOUNCEMENT);
@@ -119,15 +157,21 @@ public class UnblindAccessibilityService extends AccessibilityService implements
 //        }
 //    }
 
+    /**
+     * Accessibility Event Function
+     * Called when talkback is called, which is when user input is changed
+     * @param event: Event, generally talkback
+     */
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
         Log.v(TAG, "onAccessibilityEvent: " + event.getClass().getName());
-
+        // Obtaining Variables
         AccessibilityNodeInfo source = event.getSource();
         if (source == null) {
             return;
         }
 
+        // Button is already labelled
         if (source.getText() != null || source.getContentDescription() != null || event.getText().size() != 0) {
             Log.e(TAG, "Existing description found");
             if (source.getText() != null) {
@@ -143,16 +187,24 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         }
         String currentNodeClassName = (String) source.getClassName();
 
+        // Button is not labelled
         if (currentNodeClassName == null || !currentNodeClassName.equals("android.widget.ImageButton")) {
             Log.v(TAG, "currentNodeClassName is not android.widget.ImageButton: " + currentNodeClassName);
             source.recycle();
             return;
         }
+        // TODO: Accepting different types of buttons in log
+
+        // Clearing queue
         tts.speak("Processing labels", 2, null,null);
 
         // From this point, we can assume the source UI element is an image button
         // which has been clicked/tapped
         takeScreenshot(Display.DEFAULT_DISPLAY, threadPoolExecutor, new TakeScreenshotCallback() {
+            /**
+             * When an unlabelled button is identified run functions
+             * @param screenshot: Screenshot
+             */
             @Override
             public void onSuccess(@NonNull ScreenshotResult screenshot) {
                 Log.v(TAG, "Screenshot successfully taken");
@@ -161,16 +213,19 @@ public class UnblindAccessibilityService extends AccessibilityService implements
                 Bitmap screenShotBM = Bitmap.wrapHardwareBuffer(hardwareBuffer, colorSpace);
                 hardwareBuffer.close();
                 Bitmap buttonImage = getButtonImageFromScreenshot(source, screenShotBM).copy(Bitmap.Config.ARGB_8888, true);
-                Log.e(TAG, "setting on mediator");
+                Log.e(TAG, "Setting on mediator");
                 if (mBound) {
                     mediator.setElement(new Pair<Bitmap, String>(buttonImage, "message"));
                 }
                 source.recycle();
                 // TODO: Send buttonImage to backend for processing here
                 // TODO: 'Speak' the returned text/description for buttonImage
-                return;
             }
 
+            /**
+             * Error Handling
+             * @param errorCode: Error Code
+             */
             @Override
             public void onFailure(int errorCode) {
                 Log.e(TAG, "Failed to take screenshot - errorCode: " + errorCode);
@@ -181,11 +236,17 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         });
     }
 
+    /**
+     * Logging Interruption
+     */
     @Override
     public void onInterrupt() {
         Log.e(TAG, "onInterrupt: something went wrong");
     }
 
+    /**
+     * Service Connection Function
+     */
     @Override
     protected void onServiceConnected() {
         super.onServiceConnected();
@@ -220,11 +281,15 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         startService(intent);
         bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
         tts = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
+            /**
+             * Initialising Text to Speech to be used over Talkback when given an unlabelled button
+             * @param status: Status
+             */
             @Override
             public void onInit(int status) {
                 Log.d("Test","123: " + status);
                 if (status != TextToSpeech.ERROR) {
-                    Log.d("Test","123");
+                    Log.d("Test","Text to Speech on");
                     // Setting locale, speech rate and voice pitch
                     tts.setLanguage(Locale.UK);
                     tts.setSpeechRate(1.0f);
@@ -234,6 +299,10 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         });
     }
 
+    /**
+     * Update function
+     * Called when user input changes
+     */
     @Override
     public void update() {
         System.out.println(currentElement);
