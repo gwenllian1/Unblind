@@ -81,14 +81,14 @@ public class TfliteClassifier {
         model.close();
     }
 
-    public class Outputs {
+    private class Outputs {
         private TensorBuffer probability;
 
         private Outputs(Model model) {
             this.probability = TensorBuffer.createFixedSize(model.getOutputTensorShape(0), DataType.UINT8);
         }
 
-        public List<Category> getProbabilityAsCategoryList() {
+        private List<Category> getProbabilityAsCategoryList() {
             return new TensorLabel(labels, probabilityPostProcessor.process(probability)).getCategoryList();
         }
 
