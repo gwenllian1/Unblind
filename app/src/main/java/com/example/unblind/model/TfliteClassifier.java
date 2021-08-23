@@ -23,7 +23,17 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
+/**
+ * TfliteClassifier uses a pre-trained TensorFlow Lite model in order to perform image classification.
+ * It is used to predict Android mobile app icons and provide them with an appropriate label.
+ * It's 'predict' method is to be used by calling code, which will be required to pass a Bitmap
+ * representation of the icon image to be labelled, and a string with a description of the label
+ * will be returned by the method.
+ *
+ * Authors: Josie Leye & Llio Vernon
+ * Last Edit: 23/08/2021
+ *
+ * */
 public class TfliteClassifier {
     private ImageProcessor imageProcessor;
     private List<String> labels;
