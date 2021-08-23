@@ -25,13 +25,13 @@ import java.util.List;
  * @since   05/15/2021
  */
 public class TfliteTesting {
-    public TfliteClassifier tfliteClassifier;       // classifier object
-    public InputStream inputStream;     // the input to load bitmap
-    public ArrayList<Bitmap> testImages = new ArrayList<>();        // store all the testing image as bitmaps
-    public String[] imageFileNames = {"3.png", "56.png", "64.png", "86.png", "2002.png", "11978.png"};  //  <-- add image to test here ////////
+    private TfliteClassifier tfliteClassifier;       // classifier object
+    private InputStream inputStream;     // the input to load bitmap
+    private ArrayList<Bitmap> testImages = new ArrayList<>();        // store all the testing image as bitmaps
+    private String[] imageFileNames = {"3.png", "56.png", "64.png", "86.png", "2002.png", "11978.png"};  //  <-- add image to test here ////////
     private ArrayList<String> availableNames = new ArrayList<>();   // mapping name for available bitmaps
     private Context context;        // context for operating function that needs
-    public ArrayList<String> predictions = new ArrayList<>(); // store all outputs from model
+    private ArrayList<String> predictions = new ArrayList<>(); // store all outputs from model
 
 
     /**
@@ -52,7 +52,7 @@ public class TfliteTesting {
      * @param args an array of strings for any additional variables needed
      * @return no return (void)
      */
-    public void main(String[] args) throws IOException {
+    private void main(String[] args) throws IOException {
         loadClassifier();
         loadImages();
         runPrediction();
@@ -62,7 +62,7 @@ public class TfliteTesting {
     /**
      * This function will load the image classifier, store it in classifier attributes
      */
-    public void loadClassifier() throws IOException {
+    private void loadClassifier() throws IOException {
         // use the function provided by Utils class
         tfliteClassifier = new TfliteClassifier(context);
     }
@@ -71,7 +71,7 @@ public class TfliteTesting {
      * This function will load all images specified in line 26, store them as separate bitmap
      * and file name for whichever available image name.
      */
-    public void loadImages() {
+    private void loadImages() {
         for (String imageFileName : imageFileNames) {         // loop through filenames
             Bitmap tempBitmap = null;   // initialize a bitmap for temporary storing loaded result
             try {   // try if file is available
@@ -93,7 +93,7 @@ public class TfliteTesting {
      * This function will loop through all available images, pass them into the model
      * and store the output in the prediction array
      */
-    public void runPrediction() throws IOException {
+    private void runPrediction() throws IOException {
         int index = 0;
         for (Bitmap bitmap : testImages) {     // loop through all bitmap
             String result = tfliteClassifier.predict(bitmap); // predict the bitmap
@@ -110,7 +110,7 @@ public class TfliteTesting {
     /**
      * This function will log all the result into the terminal
      */
-    public void displayResult() {
+    private void displayResult() {
         for (String prediction : predictions) {
             Log.d("Team 3 Model Result", prediction);
         }
