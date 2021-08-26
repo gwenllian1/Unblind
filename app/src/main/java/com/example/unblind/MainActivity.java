@@ -30,22 +30,22 @@ public class MainActivity extends AppCompatActivity {
 
         Context context = this;
 
-        // Service Status Display (ON/OFF)
-        TextView serviceStatus = (TextView) findViewById(R.id.textView2);
-        buttonRefreshStatus = findViewById(R.id.button3);
-        buttonRefreshStatus.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                AccessibilityManager am = (AccessibilityManager) getSystemService(ACCESSIBILITY_SERVICE);
-                boolean isUnblindEnabled = am.isEnabled();
-                if (isUnblindEnabled) {
-                    serviceStatus.setText("Service Status: ON");
-                }
-                else {
-                    serviceStatus.setText("Service Status: OFF");
-                }
-            }
-        });
+//        // Service Status Display (ON/OFF)
+//        TextView serviceStatus = (TextView) findViewById(R.id.textView2);
+//        buttonRefreshStatus = findViewById(R.id.button3);
+//        buttonRefreshStatus.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                AccessibilityManager am = (AccessibilityManager) getSystemService(ACCESSIBILITY_SERVICE);
+//                boolean isUnblindEnabled = am.isEnabled();
+//                if (isUnblindEnabled) {
+//                    serviceStatus.setText("Service Status: ON");
+//                }
+//                else {
+//                    serviceStatus.setText("Service Status: OFF");
+//                }
+//            }
+//        });
 
 
         // get the ViewModel
@@ -54,14 +54,14 @@ public class MainActivity extends AppCompatActivity {
         // start the model service when the app is launched
         Intent mServiceIntent = new Intent(this, ModelService.class);
         getApplicationContext().startService(mServiceIntent);
-        buttonModelTest = findViewById(R.id.button2);
-        buttonModelTest.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                ModelBlackBoxTesting test = new ModelBlackBoxTesting(context);
-                Toast.makeText(context,"Test finished, check LogCat for the result",Toast.LENGTH_LONG).show();
-            }
-        });
+//        buttonModelTest = findViewById(R.id.button2);
+//        buttonModelTest.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                ModelBlackBoxTesting test = new ModelBlackBoxTesting(context);
+//                Toast.makeText(context,"Test finished, check LogCat for the result",Toast.LENGTH_LONG).show();
+//            }
+//        });
 
 
     }
