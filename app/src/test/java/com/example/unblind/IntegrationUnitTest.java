@@ -94,6 +94,11 @@ class testClass implements ColleagueInterface
         currentElement = mediator.getElement();
     }
 
+    @Override
+    public void updateStore() {
+        // Do nothing
+    }
+
     public Pair<Bitmap, String> getCurrentElement(){
         return currentElement;
     }

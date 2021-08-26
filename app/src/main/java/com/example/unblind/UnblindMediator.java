@@ -15,7 +15,7 @@ public class UnblindMediator {
     private ArrayList<ColleagueInterface> observers;
     private Queue<Pair<Bitmap, String>> IncomingQueue = new ArrayDeque<>();
     private Queue<Pair<Bitmap, String>> OutgoingQueue = new ArrayDeque<>();
-//    private Pair<Bitmap, String> currentElement = new Pair(null, null);
+    private Pair<Bitmap, String> currentElement = new Pair(null, null);
     public static final String TAG = "UnblindMediator";
 
     public static String bitmapToString(Bitmap bitmap) {
@@ -45,9 +45,23 @@ public class UnblindMediator {
         observers.remove(observer);
     }
 
-    public void notifyObservers(){
-        for (ColleagueInterface observer : observers) {
+    public void notifyObservers() {
+        for (ColleagueInterface observer: observers) {
             observer.update();
+        }
+    }
+
+    public void setCurrentElement(Pair<Bitmap, String> element) {
+        currentElement = element;
+    }
+
+    public Pair<Bitmap, String> getCurrentElement() {
+        return currentElement;
+    }
+
+    public void notifyObserversStore(){
+        for (ColleagueInterface observer : observers) {
+            observer.updateStore();
         }
     }
 

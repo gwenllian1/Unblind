@@ -80,11 +80,28 @@ public class ModelService extends Service implements ColleagueInterface {
 
     @Override
     public void update() {
-        if ((!mediator.checkIncomingEmpty()) && (currentElement.first != mediator.getElementFromIncoming().first)){
-            currentElement = mediator.serveElementFromIncoming();
-            runPredication();
+        if (currentElement.first != mediator.getCurrentElement().first) {
+            currentElement = mediator.getCurrentElement();
+            String prediction = runPredication();
+            currentElement = new Pair<Bitmap, String>(currentElement.first, prediction);
+
+            // store classified pair into cache
+            Log.v(TAG, "setting in SP" + prediction);
+            String base64EncodedBitmap = UnblindMediator.bitmapToString(currentElement.first);
+            mService.setSharedData(UnblindMediator.TAG, base64EncodedBitmap, prediction);
+            mediator.notifyObservers();
+            Log.e(TAG, "model labelling element: " + currentElement.toString());
         }
-        Log.e(TAG, "updating element on model");
+    }
+
+    @Override
+    public void updateStore() {
+        if ((!mediator.checkIncomingEmpty()) && (currentElement.first != mediator.getElementFromIncoming().first)) {
+            String bitmapString = UnblindMediator.bitmapToString(mediator.serveElementFromIncoming().first);
+            String prediction = runPredication();
+            mService.setSharedData(UnblindMediator.TAG, bitmapString, prediction);
+            Log.e(TAG, "model labelling element for storage: " + prediction);
+        }
     }
 
     public ModelService getSelf() {
@@ -130,12 +147,10 @@ public class ModelService extends Service implements ColleagueInterface {
     }
 
 
-    public void runPredication(){
+    public String runPredication(){
         String result = classifier.predict(currentElement.first);     // predict the bitmap
-        Log.d("Team 3 Model Result", result);
-        currentElement = new Pair<Bitmap, String>(currentElement.first, result);
-        mediator.pushElementToOutgoing(currentElement);
-        mediator.notifyObservers();
+        Log.d("Prediction result", result);
+        return result;
     }
 
     private void startNotification() {

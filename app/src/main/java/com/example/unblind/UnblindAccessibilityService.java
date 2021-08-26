@@ -72,7 +72,7 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         Bitmap buttonBitmap = Bitmap.createBitmap(screenShotBM, rectTest.left, rectTest.top, rectTest.width(), rectTest.height());
 
         String encoded = UnblindMediator.bitmapToString(buttonBitmap);
-        Log.v(TAG, "Screenshot result for button: " + encoded);
+        // Log.v(TAG, "Screenshot result for button: " + encoded);
         return buttonBitmap;
     }
 
@@ -149,19 +149,17 @@ public class UnblindAccessibilityService extends AccessibilityService implements
 
                 // if the label already exists, don't notify
                 if (storedLabel != null) {
-                    Log.v(TAG, "Found in SP");
-                    mediator.pushElementToOutgoing(new Pair<Bitmap, String>(buttonImage, storedLabel));
-                    update();
+                    Log.v(TAG, "Found in SP: " + storedLabel);
+                    announceTextFromEvent(storedLabel);
                 }
 
                 // else if the label hasn't been seen before, notify
                 else if (mBound) {
-                    Log.e(TAG, "setting on mediator");
-                    mediator.pushElementToIncoming(new Pair<Bitmap, String>(buttonImage, "message"));
-                    currentElement = mediator.getElementFromIncoming();
-                    if (!mediator.checkIncomingSizeMoreThanOne()) {
-                        mediator.notifyObservers();
-                    }
+                    Pair<Bitmap, String> element = new Pair<Bitmap, String>(buttonImage, "message");
+                    Log.e(TAG, "setting on mediator: " + element);
+                    currentElement = element;
+                    mediator.setCurrentElement(element);
+                    mediator.notifyObservers();
                 }
                 source.recycle();
             }
@@ -218,19 +216,16 @@ public class UnblindAccessibilityService extends AccessibilityService implements
 
     @Override
     public void update() {
-        // Update mediator if the out queue is not empty AND the outgoing element is not the same as the current element?
-        if (!mediator.checkOutgoingEmpty() && !currentElement.second.equals(mediator.getElementFromOutgoing().second)) {
-            System.out.println(currentElement);
-            System.out.println(mediator.getElementFromOutgoing());
-            currentElement = mediator.serveElementFromOutgoing();
-            Log.e(TAG, "updating on accessibility element");
-            Log.e(TAG, currentElement.second);
+        // Update mediator if the element is not the same as the current element?
+        if (!currentElement.second.equals(mediator.getCurrentElement().second)) {
+            Log.e(TAG, "updating on element: " + currentElement.toString());
             // currentElement is now complete, can be sent to TalkBack
             announceTextFromEvent(currentElement.second);
-            // if the in queue is not empty, notify observers
-            if (!mediator.checkIncomingEmpty()) {
-                mediator.notifyObservers();
-            }
         }
+    }
+
+    @Override
+    public void updateStore() {
+        // Do nothing
     }
 }
