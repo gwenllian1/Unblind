@@ -3,6 +3,7 @@ package com.example.unblind;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.view.Menu;
@@ -16,6 +17,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.preference.PreferenceManager;
 
 import com.example.unblind.model.ModelBlackBoxTesting;
 
@@ -27,25 +29,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        Context context = this;
-
-//        // Service Status Display (ON/OFF)
-//        TextView serviceStatus = (TextView) findViewById(R.id.textView2);
-//        buttonRefreshStatus = findViewById(R.id.button3);
-//        buttonRefreshStatus.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                AccessibilityManager am = (AccessibilityManager) getSystemService(ACCESSIBILITY_SERVICE);
-//                boolean isUnblindEnabled = am.isEnabled();
-//                if (isUnblindEnabled) {
-//                    serviceStatus.setText("Service Status: ON");
-//                }
-//                else {
-//                    serviceStatus.setText("Service Status: OFF");
-//                }
-//            }
-//        });
 
 
         // get the ViewModel
@@ -94,5 +77,10 @@ public class MainActivity extends AppCompatActivity {
         // Ask the ViewModel to access the database
         mViewModel.accessDatabase();
     }
+
+
+
+
+
 
 }

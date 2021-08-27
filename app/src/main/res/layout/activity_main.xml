@@ -73,15 +73,14 @@
         <!--            app:layout_constraintEnd_toEndOf="parent" />-->
 
 
-<!--        <TextView-->
-<!--            android:id="@+id/textView2"-->
-<!--            android:layout_width="163dp"-->
-<!--            android:layout_height="65dp"-->
-<!--            android:text="@string/service_status_off"-->
-<!--            android:textSize="24sp"-->
-<!--            android:visibility="visible"-->
-<!--            app:layout_constraintBottom_toTopOf="@+id/button3"-->
-<!--            app:layout_constraintEnd_toEndOf="parent" />-->
+        <TextView
+            android:id="@+id/textView2"
+            android:layout_width="163dp"
+            android:layout_height="65dp"
+            android:text="@string/service_status_off"
+            android:textSize="24sp"
+            android:visibility="visible"
+            app:layout_constraintEnd_toEndOf="parent" />
 
 <!--        <Button-->
 <!--            android:id="@+id/button3"-->

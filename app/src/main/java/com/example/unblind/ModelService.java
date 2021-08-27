@@ -10,16 +10,20 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.IBinder;
+import android.provider.Settings;
 import android.util.Log;
 import android.util.Pair;
+import android.view.accessibility.AccessibilityManager;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
+import androidx.preference.PreferenceManager;
 import androidx.work.WorkManager;
 
 import com.example.unblind.model.Classifier;
@@ -69,7 +73,6 @@ public class ModelService extends Service implements ColleagueInterface {
             Log.e(TAG, "bound, getting mediator");
             mediator = mService.getUnblindMediator();
             mediator.addObserver((ColleagueInterface) getSelf());
-
         }
 
         public void onServiceDisconnected(ComponentName className) {
