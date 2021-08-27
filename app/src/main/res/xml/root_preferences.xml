@@ -1,10 +1,12 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    >
 
     <PreferenceCategory
         android:contentDescription="Main Setting Section"
         app:title="Main Setting"
         app:icon="@drawable/ic_outline_miscellaneous_services_24"
+        android:layout="@layout/preference_title_layout"
         >
 
         <Preference
@@ -24,7 +26,8 @@
     </PreferenceCategory>
 
     <PreferenceCategory app:title="@string/information_header"
-        app:icon="@drawable/ic_outline_info_24">
+        app:icon="@drawable/ic_outline_info_24"
+        android:layout="@layout/preference_title_layout">
 
 <!--        <EditTextPreference-->
 <!--            app:key="signature"-->
@@ -47,6 +50,10 @@
             android:summary="@string/information_turn_off_description"
             />
 
+        <Preference
+            />
+
+        <Preference/>
 
     </PreferenceCategory>
 

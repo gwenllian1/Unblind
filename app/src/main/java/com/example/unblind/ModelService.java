@@ -137,6 +137,12 @@ public class ModelService extends Service implements ColleagueInterface {
         String result = classifier.predict(currentElement.first);     // predict the bitmap
         Log.d("Team 3 Model Result", result);
         currentElement = new Pair<Bitmap, String>(currentElement.first, result);
+
+        // store classified pair into cache
+        Log.v(TAG, "setting in SP");
+        byte[] base64EncodedBitmap = UnblindMediator.bitmapToBytes(currentElement.first);
+        mService.setSharedData(UnblindMediator.TAG, base64EncodedBitmap, result);
+
         mediator.pushElementToOutgoing(currentElement);
         mediator.notifyObservers();
     }

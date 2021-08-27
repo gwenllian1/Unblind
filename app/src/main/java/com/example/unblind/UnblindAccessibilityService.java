@@ -71,8 +71,7 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         // Crop the relevant portion of the screenshot into a new Bitmap
         Bitmap buttonBitmap = Bitmap.createBitmap(screenShotBM, rectTest.left, rectTest.top, rectTest.width(), rectTest.height());
 
-        String encoded = UnblindMediator.bitmapToString(buttonBitmap);
-        Log.v(TAG, "Screenshot result for button: " + encoded);
+        Log.v(TAG, "Screenshot encoded");
         return buttonBitmap;
     }
 
@@ -140,7 +139,7 @@ public class UnblindAccessibilityService extends AccessibilityService implements
                 Bitmap buttonImage = getButtonImageFromScreenshot(source, screenShotBM).copy(Bitmap.Config.RGBA_F16, true);
 
                 // check screenshot against storage before notifying
-                String base64EncodedBitmap = UnblindMediator.bitmapToString(buttonImage);
+                byte[] base64EncodedBitmap = UnblindMediator.bitmapToBytes(buttonImage);
                 String storedLabel = null;
                 if (mBound) {
                     Log.v(TAG, "Checking SP");

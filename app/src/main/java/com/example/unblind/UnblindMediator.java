@@ -18,18 +18,17 @@ public class UnblindMediator {
 //    private Pair<Bitmap, String> currentElement = new Pair(null, null);
     public static final String TAG = "UnblindMediator";
 
-    public static String bitmapToString(Bitmap bitmap) {
+    public static byte[] bitmapToBytes(Bitmap bitmap) {
         // Get a Base64 encoded PNG of the button bitmap
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream);
-        byte[] byteArray = byteArrayOutputStream.toByteArray();
-        return Base64.encodeToString(byteArray, Base64.DEFAULT);
+        return byteArrayOutputStream.toByteArray();
     }
 
-    public static Bitmap stringToBitmap(String string) {
-        byte[] decodedString = Base64.decode(string, Base64.DEFAULT);
-        return BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
-    }
+//    public static Bitmap stringToBitmap(String string) {
+//        byte[] decodedString = Base64.decode(string, Base64.DEFAULT);
+//        return BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+//    }
 
     public UnblindMediator() {
         this.observers = new ArrayList<ColleagueInterface>();
