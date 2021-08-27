@@ -8,7 +8,9 @@ import android.provider.ContactsContract;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.accessibility.AccessibilityManager;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -16,19 +18,34 @@ import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.unblind.model.ModelBlackBoxTesting;
-import com.example.unblind.model.TfliteTesting;
-
-import java.io.IOException;
 
 public class MainActivity extends AppCompatActivity {
     private BackgroundViewModel mViewModel;
     Button buttonModelTest;
+    Button buttonRefreshStatus;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         Context context = this;
+
+//        // Service Status Display (ON/OFF)
+//        TextView serviceStatus = (TextView) findViewById(R.id.textView2);
+//        buttonRefreshStatus = findViewById(R.id.button3);
+//        buttonRefreshStatus.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                AccessibilityManager am = (AccessibilityManager) getSystemService(ACCESSIBILITY_SERVICE);
+//                boolean isUnblindEnabled = am.isEnabled();
+//                if (isUnblindEnabled) {
+//                    serviceStatus.setText("Service Status: ON");
+//                }
+//                else {
+//                    serviceStatus.setText("Service Status: OFF");
+//                }
+//            }
+//        });
 
 
         // get the ViewModel
@@ -37,18 +54,14 @@ public class MainActivity extends AppCompatActivity {
         // start the model service when the app is launched
         Intent mServiceIntent = new Intent(this, ModelService.class);
         getApplicationContext().startService(mServiceIntent);
-        buttonModelTest = findViewById(R.id.button2);
-        buttonModelTest.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                try {
-                    TfliteTesting test = new TfliteTesting(context);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                Toast.makeText(context,"Test finished, check LogCat for the result",Toast.LENGTH_LONG).show();
-            }
-        });
+//        buttonModelTest = findViewById(R.id.button2);
+//        buttonModelTest.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                ModelBlackBoxTesting test = new ModelBlackBoxTesting(context);
+//                Toast.makeText(context,"Test finished, check LogCat for the result",Toast.LENGTH_LONG).show();
+//            }
+//        });
 
 
     }

@@ -8,6 +8,8 @@ import android.widget.Button;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import java.nio.charset.StandardCharsets;
+
 public class DatabaseTest extends AppCompatActivity {
 
     private DatabaseService dbS;
@@ -39,11 +41,11 @@ public class DatabaseTest extends AppCompatActivity {
 
     public void savetodb()
     {
-        dbS.setSharedData("testing", "image1", "label1");
+        dbS.setSharedData("testing", "image1".getBytes(), "label1");
     }
 
     public void loadtodb()
     {
-        dbS.getSharedData("testing", "image1");
+        dbS.getSharedData("testing", "image1".getBytes());
     }
 }

@@ -1,18 +1,25 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    >
 
     <PreferenceCategory
         android:contentDescription="Main Setting Section"
         app:title="Main Setting"
-        app:icon="@drawable/ic_baseline_play_arrow_24">
+        app:icon="@drawable/ic_outline_miscellaneous_services_24"
+        android:layout="@layout/preference_title_layout"
+        >
+
+<!--        <Preference-->
+<!--            android:layout="@layout/image_view_layout"-->
+<!--            />-->
 
         <SwitchPreferenceCompat
             android:id="@+id/ActivateSwitch"
-            app:defaultValue="true"
+            app:defaultValue="false"
             app:key="@string/activate_service_key"
-            app:title="@string/activate_service_title"
+            app:title="@string/activate_service_title"/>
+        <!--android:layout="@layout/preference_title_layout"-->
 
-            />
 
         <SwitchPreferenceCompat
             android:id="@+id/NavSwitch"
@@ -20,40 +27,40 @@
             app:key="@string/activate_notification_key"
             app:summaryOff="@string/activate_notification_summary_off"
             app:summaryOn="@string/activate_notification_summary_on"
-            app:title="@string/activate_notification_title" />
-        <SwitchPreferenceCompat
-            android:id="@+id/ScreenReaderSwitch"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:dependency="@string/activate_service_key"
-            app:key="@string/activate_screen_key"
-            app:summaryOff="@string/activate_screen_summary_off"
-            app:summaryOn="@string/activate_screen_summary_on"
-            app:title="@string/activate_screen_title" />
+            app:title="@string/activate_notification_title"
+            />
 
     </PreferenceCategory>
-    <PreferenceCategory app:title="@string/preferences_header"
-        app:icon="@drawable/ic_baseline_person_24">
+
+    <PreferenceCategory app:title="@string/information_header"
+        app:icon="@drawable/ic_outline_info_24"
+        android:layout="@layout/preference_title_layout">
 
 <!--        <EditTextPreference-->
 <!--            app:key="signature"-->
 <!--            app:title="@string/signature_title"-->
 <!--            app:useSimpleSummaryProvider="true" />-->
 
-        <ListPreference
-            app:defaultValue="reply"
-            app:entries="@array/reply_entries"
-            app:entryValues="@array/reply_values"
-            app:key="reply"
-            app:title="@string/reply_title"
-            app:useSimpleSummaryProvider="true" />
-
         <Preference
-            android:title="Accessibility Settings"
+            android:title="Unblind Services"
             android:key="@string/accessibility_button"
-            android:summary="Go to settings"
+            android:summary="@string/information_description"
             />
 
+        <Preference
+            android:title="@string/information_use"
+            android:summary="@string/information_use_description"
+            />
+
+        <Preference
+            android:title="@string/information_turn_off"
+            android:summary="@string/information_turn_off_description"
+            />
+
+        <Preference
+            />
+
+        <Preference/>
 
     </PreferenceCategory>
 

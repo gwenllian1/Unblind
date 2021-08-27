@@ -1,5 +1,6 @@
 package com.example.unblind;
 
+import android.accessibilityservice.AccessibilityService;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -79,8 +80,8 @@ public class ModelService extends Service implements ColleagueInterface {
 
     @Override
     public void update() {
-        if (currentElement.first != mediator.getElement().first){
-            currentElement = mediator.getElement();
+        if ((!mediator.checkIncomingEmpty()) && (currentElement.first != mediator.getElementFromIncoming().first)){
+            currentElement = mediator.serveElementFromIncoming();
             runPredication();
         }
         Log.e(TAG, "updating element on model");
@@ -131,7 +132,14 @@ public class ModelService extends Service implements ColleagueInterface {
         String result = tfliteClassifier.predict(currentElement.first);     // predict the bitmap
         Log.d("Team 3 Model Result", result);
         currentElement = new Pair<Bitmap, String>(currentElement.first, result);
-        mediator.setElement(currentElement);
+
+        // store classified pair into cache
+        Log.v(TAG, "setting in SP");
+        byte[] base64EncodedBitmap = UnblindMediator.bitmapToBytes(currentElement.first);
+        mService.setSharedData(UnblindMediator.TAG, base64EncodedBitmap, result);
+
+        mediator.pushElementToOutgoing(currentElement);
+        mediator.notifyObservers();
     }
 
     private void startNotification() {
