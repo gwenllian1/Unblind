@@ -1,6 +1,7 @@
 package com.example.unblind;
 
 import android.accessibilityservice.AccessibilityService;
+import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -41,6 +42,7 @@ public class ModelService extends Service implements ColleagueInterface {
 
     TfliteClassifier tfliteClassifier;
 
+    @SuppressLint("StaticFieldLeak")
     private class GetClassifier extends AsyncTask<String, Integer, TfliteClassifier> {
 
         @Override
