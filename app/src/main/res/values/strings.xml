@@ -40,6 +40,9 @@ visualising on screen elements.</string>
     <!-- Preference title for accessibility button (For integration with Team 2)-->
     <string name="accessibility_button">Button</string>
 
+    <!-- For use in UI -->
+    <string name="service_button">Button</string>
+
 
     <!-- Messages Preferences -->
     <string name="signature_title">Your signature</string>

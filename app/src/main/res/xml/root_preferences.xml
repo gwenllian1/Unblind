@@ -9,21 +9,14 @@
         android:layout="@layout/preference_title_layout"
         >
 
-<!--        <Preference-->
-<!--            android:layout="@layout/image_view_layout"-->
-<!--            />-->
-
-        <SwitchPreferenceCompat
-            android:id="@+id/ActivateSwitch"
-            app:defaultValue="false"
-            app:key="@string/activate_service_key"
-            app:title="@string/activate_service_title"/>
-        <!--android:layout="@layout/preference_title_layout"-->
-
+        <Preference
+            android:title="Service Status"
+            android:key="@string/service_button"
+            android:summary="@string/service_status_off"
+            />
 
         <SwitchPreferenceCompat
             android:id="@+id/NavSwitch"
-            app:dependency="@string/activate_service_key"
             app:key="@string/activate_notification_key"
             app:summaryOff="@string/activate_notification_summary_off"
             app:summaryOn="@string/activate_notification_summary_on"
