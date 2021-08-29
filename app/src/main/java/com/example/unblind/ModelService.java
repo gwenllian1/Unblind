@@ -15,16 +15,14 @@ import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
 import android.util.Pair;
-
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
-
-import com.example.unblind.model.Classifier;
 import com.example.unblind.model.TfliteClassifier;
-import com.example.unblind.model.Utils;
+
+
 
 public class ModelService extends Service implements ColleagueInterface {
     public static final String TAG = "ModelService";
