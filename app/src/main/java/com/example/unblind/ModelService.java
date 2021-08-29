@@ -20,17 +20,15 @@ import android.provider.Settings;
 import android.util.Log;
 import android.util.Pair;
 import android.view.accessibility.AccessibilityManager;
-
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 import androidx.preference.PreferenceManager;
 import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
-
-import com.example.unblind.model.Classifier;
 import com.example.unblind.model.TfliteClassifier;
-import com.example.unblind.model.Utils;
+
+
 
 public class ModelService extends Service implements ColleagueInterface {
     public static final String TAG = "ModelService";
