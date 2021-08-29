@@ -85,6 +85,7 @@ public class UnblindAccessibilityService extends AccessibilityService implements
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void announceTextFromEvent(String text) {
         tts.speak(text, 1, null,null);
+        tts.speak("Double Tap to activate", 1, null,null);
     }
 
 //    @RequiresApi(api = Build.VERSION_CODES.O)
