@@ -31,10 +31,10 @@ public class SettingsFragment extends PreferenceFragmentCompat {
                 AccessibilityManager am = (AccessibilityManager) getContext().getSystemService(ACCESSIBILITY_SERVICE);
                 boolean isUnblindEnabled = am.isEnabled();
                 if (isUnblindEnabled) {
-                    button.setSummary("Service Status: ON");
+                    button.setTitle("Service Status: ON");
                 }
                 else {
-                    button.setSummary("Service Status: OFF");
+                    button.setTitle("Service Status: OFF");
                 }
                 return true;
             }
@@ -51,9 +51,9 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         AccessibilityManager am = (AccessibilityManager) getContext().getSystemService(ACCESSIBILITY_SERVICE);
         boolean isUnblindEnabled = am.isEnabled();
         if (isUnblindEnabled) {
-            button.setSummary("Service Status: ON");
+            button.setTitle("Service Status: ON");
         } else {
-            button.setSummary("Service Status: OFF");
+            button.setTitle("Service Status: OFF");
         }
 
     }
@@ -67,10 +67,9 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         AccessibilityManager am = (AccessibilityManager) getContext().getSystemService(ACCESSIBILITY_SERVICE);
         boolean isUnblindEnabled = am.isEnabled();
         if (isUnblindEnabled) {
-            button.setSummary("Service Status: ON");
-        }
-        else {
-            button.setSummary("Service Status: OFF");
+            button.setTitle("Service Status: ON");
+        } else {
+            button.setTitle("Service Status: OFF");
         }
 
     }
@@ -83,10 +82,9 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         AccessibilityManager am = (AccessibilityManager) getContext().getSystemService(ACCESSIBILITY_SERVICE);
         boolean isUnblindEnabled = am.isEnabled();
         if (isUnblindEnabled) {
-            button.setSummary("Service Status: ON");
-        }
-        else {
-            button.setSummary("Service Status: OFF");
+            button.setTitle("Service Status: ON");
+        } else {
+            button.setTitle("Service Status: OFF");
         }
 
     }
@@ -99,10 +97,9 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         AccessibilityManager am = (AccessibilityManager) getContext().getSystemService(ACCESSIBILITY_SERVICE);
         boolean isUnblindEnabled = am.isEnabled();
         if (isUnblindEnabled) {
-            button.setSummary("Service Status: ON");
-        }
-        else {
-            button.setSummary("Service Status: OFF");
+            button.setTitle("Service Status: ON");
+        } else {
+            button.setTitle("Service Status: OFF");
         }
 
     }
