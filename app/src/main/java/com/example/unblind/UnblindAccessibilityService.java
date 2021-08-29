@@ -6,14 +6,15 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.content.SharedPreferences;
 import android.graphics.BitmapFactory;
 import android.graphics.ColorSpace;
 import android.graphics.Rect;
 import android.hardware.HardwareBuffer;
 import android.os.Build;
 import android.os.IBinder;
+import android.speech.tts.TextToSpeech;
 import android.util.Base64;
 import android.util.Log;
 import android.util.Pair;
@@ -28,6 +29,7 @@ import androidx.annotation.RequiresApi;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Locale;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -39,6 +41,9 @@ public class UnblindAccessibilityService extends AccessibilityService implements
     private AccessibilityManager manager;
     private boolean mBound = false;
     private UnblindMediator mediator;
+    private Pair<Bitmap, String> currentElement = new Pair(null, "");
+    private TextToSpeech tts;
+
     private final ServiceConnection mConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
             DatabaseService.LocalBinder binder = (DatabaseService.LocalBinder) service;
@@ -55,7 +60,6 @@ public class UnblindAccessibilityService extends AccessibilityService implements
             mBound = false;
         }
     };
-    private Pair<Bitmap, String> currentElement = new Pair(null, "");
 
     private void setMediator(UnblindMediator mediator) {
         this.mediator = mediator;
@@ -80,17 +84,24 @@ public class UnblindAccessibilityService extends AccessibilityService implements
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void announceTextFromEvent(String text) {
-        if (manager.isEnabled()) {
-            AccessibilityEvent e = AccessibilityEvent.obtain();
-            e.setEventType(AccessibilityEvent.TYPE_ANNOUNCEMENT);
-            e.setClassName(getClass().getName());
-            e.getText().add(text);
-            manager.sendAccessibilityEvent(e);
-            Log.e(TAG, "No description found. Custom description added here");
-        } else {
-            Log.e(TAG, "For some reason the manager did not work");
-        }
+        tts.speak(text, 1, null,null);
     }
+
+//    @RequiresApi(api = Build.VERSION_CODES.O)
+//    private void announceTextFromEvent(String text, AccessibilityEvent event) {
+//        if (manager.isEnabled()) {
+//            AccessibilityEvent e = AccessibilityEvent.obtain();
+//            e.setEventType(AccessibilityEvent.TYPE_ANNOUNCEMENT);
+//            e.setClassName(getClass().getName());
+//            e.setPackageName(event.getPackageName());
+//            e.getText().add(text);
+//            manager.sendAccessibilityEvent(e);
+//            Log.e(TAG, "No description found. Custom description added here");
+//        }
+//        else {
+//            Log.e(TAG, "For some reason the manager did not work");
+//        }
+//    }
 
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
@@ -119,7 +130,7 @@ public class UnblindAccessibilityService extends AccessibilityService implements
             source.recycle();
             return;
         }
-
+        tts.speak("Processing labels", 2, null,null);
 
         // From this point, we can assume the source UI element is an image button
         // which has been clicked/tapped
@@ -146,18 +157,17 @@ public class UnblindAccessibilityService extends AccessibilityService implements
                     Log.v(TAG, "Found in SP");
                     mediator.pushElementToOutgoing(new Pair<Bitmap, String>(buttonImage, storedLabel));
                     update();
-                }
-
-                // else if the label hasn't been seen before, notify
-                else if (mBound) {
+                } else if (mBound) {
+                    // else if the label hasn't been seen before, notify
                     Log.e(TAG, "setting on mediator");
-                    mediator.pushElementToIncoming(new Pair<Bitmap, String>(buttonImage, "message"));
+                    mediator.pushElementToIncoming(new Pair<Bitmap, String>(buttonImage, ""));
                     currentElement = mediator.getElementFromIncoming();
                     if (!mediator.checkIncomingSizeMoreThanOne()) {
                         mediator.notifyObservers();
                     }
                 }
                 source.recycle();
+                return;
             }
 
             @Override
@@ -208,10 +218,45 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         Intent intent = new Intent(this, DatabaseService.class);
         startService(intent);
         bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+        tts = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+                Log.d("Test","123: " + status);
+                if (status != TextToSpeech.ERROR) {
+                    Log.d("Test","123");
+                    // Setting locale, speech rate and voice pitch
+                    tts.setLanguage(Locale.UK);
+                    tts.setSpeechRate(1.0f);
+                    tts.setPitch(1.0f);
+                }
+            }
+        });
     }
 
     @Override
     public void update() {
+        /*System.out.println(currentElement);
+        Log.v(TAG, "update");
+        if (mediator.checkOutgoingEmpty()) {
+            Log.v(TAG, "outgoing queue is empty");
+            return;
+        }
+        Pair<Bitmap, String> tempElement = mediator.serveElementFromOutgoing();
+        if (tempElement == null)
+            return;
+        Log.v(TAG, "update - " + tempElement.second);
+        System.out.println(tempElement);
+        if (!currentElement.second.equals(tempElement.second)) {
+            currentElement = tempElement;
+            Log.e(TAG, "updating on accessibility element");
+            Log.e(TAG, currentElement.second);
+            // currentElement is now complete, can be sent to TalkBack
+            announceTextFromEvent(currentElement.second);
+            // if the in queue is not empty, notify observers
+            if (!mediator.checkIncomingEmpty()) {
+                mediator.notifyObservers();
+            }
+        }*/
         // Update mediator if the out queue is not empty AND the outgoing element is not the same as the current element?
         if (!mediator.checkOutgoingEmpty() && !currentElement.second.equals(mediator.getElementFromOutgoing().second)) {
             System.out.println(currentElement);

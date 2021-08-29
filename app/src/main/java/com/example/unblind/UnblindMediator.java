@@ -62,7 +62,7 @@ public class UnblindMediator {
 
     public void pushElementToIncoming(Pair<Bitmap, String> element){
         IncomingQueue.add(element);
-        Log.e(TAG, "setting element");
+        Log.e(TAG, "adding incoming element");
     }
 
     public Pair<Bitmap, String> getElementFromIncoming(){
@@ -75,7 +75,7 @@ public class UnblindMediator {
 
     public void pushElementToOutgoing(Pair<Bitmap, String> element){
         OutgoingQueue.add(element);
-        Log.e(TAG, "setting element");
+        Log.e(TAG, "adding outgoing element");
     }
 
     public Pair<Bitmap, String> getElementFromOutgoing(){
