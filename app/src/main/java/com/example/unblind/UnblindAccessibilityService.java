@@ -125,9 +125,17 @@ public class UnblindAccessibilityService extends AccessibilityService implements
             return;
         }
         String currentNodeClassName = (String) source.getClassName();
-
-        if (currentNodeClassName == null || !currentNodeClassName.equals("android.widget.ImageButton")) {
-            Log.v(TAG, "currentNodeClassName is not android.widget.ImageButton: " + currentNodeClassName);
+        boolean ignoreEvent = true;
+        if (currentNodeClassName != null) {
+            if (currentNodeClassName.equals("android.widget.ImageButton")) {
+                ignoreEvent = false;
+            }
+            if (currentNodeClassName.equals("android.widget.ImageView")) {
+                ignoreEvent = false;
+            }
+        }
+        if (ignoreEvent == true) {
+            Log.v(TAG, "currentNodeClassName is not android.widget.ImageButton or android.widget.ImageView: " + currentNodeClassName);
             source.recycle();
             return;
         }
