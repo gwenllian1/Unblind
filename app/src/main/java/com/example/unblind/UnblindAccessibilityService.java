@@ -130,7 +130,7 @@ public class UnblindAccessibilityService extends AccessibilityService implements
             source.recycle();
             return;
         }
-        tts.speak("Processing labels", 2, null,null);
+        tts.speak(" ", 2, null,null);
 
         // From this point, we can assume the source UI element is an image button
         // which has been clicked/tapped
@@ -159,6 +159,7 @@ public class UnblindAccessibilityService extends AccessibilityService implements
                     update();
                 } else if (mBound) {
                     // else if the label hasn't been seen before, notify
+                    tts.speak("Processing labels", 2, null,null);
                     Log.e(TAG, "setting on mediator");
                     mediator.pushElementToIncoming(new Pair<Bitmap, String>(buttonImage, ""));
                     currentElement = mediator.getElementFromIncoming();
