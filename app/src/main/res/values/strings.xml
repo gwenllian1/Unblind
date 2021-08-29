@@ -23,8 +23,26 @@
     <string name="activate_notification_title">Activate Notifications</string>
     <string name="activate_screen_title">Activate Screen Reader</string>
 
+    <!-- Information Titles -->
+    <string name="information_header">Information</string>
+    <string name="information_description">When enabled, Unblind works together with Talkback to
+provide descriptions for unlabelled icons in apps. This
+service is intended for users that have difficulty
+visualising on screen elements.</string>
+    <string name="information_use">How to use Unblind</string>
+    <string name="information_use_description">- Turn on Unblind services through the Accessibility Settings (The ‘Activate Service’
+            button can be used to direct you to settings). \n- Make sure Talkback is enabled; Unblind uses the services of Talkback to read out on-screen elements. \n- Use Talkback as usual (See Talkback for details of use). Labels which previously did
+            not have labels will have one generated for them and will be read aloud.</string>
+    <string name="information_turn_off">Turn off Unblind</string>
+    <string name="information_turn_off_description">Turn off Unblind services through the
+            Accessibility settings</string>
+
     <!-- Preference title for accessibility button (For integration with Team 2)-->
     <string name="accessibility_button">Button</string>
+
+    <!-- For use in UI -->
+    <string name="service_button">Button</string>
+
 
     <!-- Messages Preferences -->
     <string name="signature_title">Your signature</string>
@@ -47,4 +65,7 @@
     <string name="accessibility_service_label">Unblind</string>
     <string name="accessibility_service_description">Provides machine learning generated alt-text to unlabelled UI icons to be read by screen readers.</string>
     <string name="turn_off">Turn Off</string>
+    <string name="service_status_off">Service Status: OFF</string>
+    <string name="service_status_on">Service Status: ON</string>
+    <string name="go_to_settings">Click to go to Accessibility Settings</string>
 </resources>

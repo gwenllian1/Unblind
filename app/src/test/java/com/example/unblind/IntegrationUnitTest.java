@@ -71,13 +71,14 @@ public class IntegrationUnitTest {
 //        DatabaseService TestDB = ((DatabaseService.LocalBinder) service).getService();
         DatabaseService TestDB = binder.getService();
 
-        TestDB.setSharedData(inputPref, inputKey, inputLabel);
-        String outputResult = TestDB.getSharedData(inputPref, inputKey);
+        byte[] inputKeyBytes = inputKey.getBytes();
+        TestDB.setSharedData(inputPref, inputKeyBytes, inputLabel);
+        String outputResult = TestDB.getSharedData(inputPref, inputKeyBytes);
 //        assertThat(outputResult).isEqualTo(inputLabel);
         Assertions.assertEquals(outputResult, inputLabel);
 
         //check if it works if I put in a wrong key
-        String outputResult2 = TestDB.getSharedData(inputPref, "wrongKey1");
+        String outputResult2 = TestDB.getSharedData(inputPref, "wrongKey1".getBytes());
         Assertions.assertEquals(outputResult2, "None");
     }
 
@@ -91,7 +92,7 @@ class testClass implements ColleagueInterface
 
     @Override
     public void update() {
-        currentElement = mediator.getElement();
+        currentElement = mediator.getElementFromIncoming();
     }
 
     public Pair<Bitmap, String> getCurrentElement(){
