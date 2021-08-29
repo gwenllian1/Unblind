@@ -15,7 +15,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.example.unblind.model.ModelBlackBoxTesting;
 import com.example.unblind.model.TfliteTesting;
 
 import java.io.IOException;
