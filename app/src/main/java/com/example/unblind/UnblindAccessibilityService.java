@@ -136,6 +136,9 @@ public class UnblindAccessibilityService extends AccessibilityService implements
             if (currentNodeClassName.equals("android.widget.ImageView")) {
                 ignoreEvent = false;
             }
+            if (currentNodeClassName.equals("android.widget.FrameLayout")) {
+                ignoreEvent = false;
+            }
         }
         if (ignoreEvent == true) {
             Log.v(TAG, "currentNodeClassName is not android.widget.ImageButton or android.widget.ImageView: " + currentNodeClassName);
