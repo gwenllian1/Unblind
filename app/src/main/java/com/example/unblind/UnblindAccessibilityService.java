@@ -43,6 +43,7 @@ public class UnblindAccessibilityService extends AccessibilityService implements
     private UnblindMediator mediator;
     private Pair<Bitmap, String> currentElement = new Pair(null, "");
     private TextToSpeech tts;
+    private boolean ttsReady = false;
 
     private final ServiceConnection mConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
@@ -84,8 +85,10 @@ public class UnblindAccessibilityService extends AccessibilityService implements
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void announceTextFromEvent(String text) {
-        tts.speak(text, 1, null,null);
-        tts.speak("Double Tap to activate", 1, null,null);
+        if (ttsReady) {
+            tts.speak(text, 1, null, null);
+            tts.speak("Double Tap to activate", 1, null, null);
+        }
     }
 
 //    @RequiresApi(api = Build.VERSION_CODES.O)
@@ -139,7 +142,8 @@ public class UnblindAccessibilityService extends AccessibilityService implements
             source.recycle();
             return;
         }
-        tts.speak(" ", 2, null,null);
+        if (ttsReady)
+            tts.speak(" ", 2, null,null);
 
         // From this point, we can assume the source UI element is an image button
         // which has been clicked/tapped
@@ -168,7 +172,8 @@ public class UnblindAccessibilityService extends AccessibilityService implements
                     update();
                 } else if (mBound) {
                     // else if the label hasn't been seen before, notify
-                    tts.speak("Processing labels", 2, null,null);
+                    if (ttsReady)
+                        tts.speak("Processing labels", 2, null,null);
                     Log.e(TAG, "setting on mediator");
                     mediator.pushElementToIncoming(new Pair<Bitmap, String>(buttonImage, ""));
                     currentElement = mediator.getElementFromIncoming();
@@ -238,6 +243,7 @@ public class UnblindAccessibilityService extends AccessibilityService implements
                     tts.setLanguage(Locale.UK);
                     tts.setSpeechRate(1.0f);
                     tts.setPitch(1.0f);
+                    ttsReady = true;
                 }
             }
         });
