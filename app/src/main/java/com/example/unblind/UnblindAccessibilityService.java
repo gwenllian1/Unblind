@@ -259,7 +259,10 @@ public class UnblindAccessibilityService extends AccessibilityService implements
             }
         }*/
         // Update mediator if the out queue is not empty AND the outgoing element is not the same as the current element?
-        if (!mediator.checkOutgoingEmpty() && !currentElement.second.equals(mediator.getElementFromOutgoing().second)) {
+        Log.v(TAG,"Update");
+        if(mediator.getElementFromOutgoing() == null)
+            return;
+//        if (!mediator.checkOutgoingEmpty() && !currentElement.second.equals(mediator.getElementFromOutgoing().second)) {
             System.out.println(currentElement);
             System.out.println(mediator.getElementFromOutgoing());
             currentElement = mediator.serveElementFromOutgoing();
@@ -271,7 +274,7 @@ public class UnblindAccessibilityService extends AccessibilityService implements
             if (!mediator.checkIncomingEmpty()) {
                 mediator.notifyObservers();
             }
-        }
+//        }
 
 
     }
