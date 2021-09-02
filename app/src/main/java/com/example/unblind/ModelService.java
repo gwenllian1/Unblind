@@ -93,6 +93,7 @@ public class ModelService extends Service implements ColleagueInterface {
             return;
         }
         currentElement = mediator.serveElementFromIncoming();
+        runPredication();
         Log.v(TAG, "ModelService is about to processing icon data...");
         Log.e(TAG, "updating element on model");
     }
