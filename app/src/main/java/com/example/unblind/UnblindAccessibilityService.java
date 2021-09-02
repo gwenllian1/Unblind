@@ -61,6 +61,43 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         mediator.addObserver(this);
     }
 
+    private boolean shouldIgnoreNode(AccessibilityNodeInfo source) {
+        // Helper method to limit focus to only the specified classes
+
+        String currentNodeClassName = (String) source.getClassName();
+        boolean ignoreNode = true;
+        if(currentNodeClassName !=null)  {
+            if (currentNodeClassName.equals("android.widget.ImageButton")) {
+                ignoreNode = false;
+            }
+            if (currentNodeClassName.equals("android.widget.ImageView")) {
+                ignoreNode = false;
+            }
+            if (currentNodeClassName.equals("android.widget.FrameLayout")) {
+                ignoreNode = false;
+            }
+        }
+        return ignoreNode;
+    }
+
+    private boolean nodeHasDescription(AccessibilityNodeInfo source) {
+        if (source == null) {
+            return false;
+        }
+        boolean ret = false;
+        if (source.getText() != null) {
+            Log.v(TAG, "Node getText: " + source.getText());
+            ret = true;
+        }
+        if (source.getContentDescription() != null) {
+            Log.v(TAG, "Node getContentDescription: " + source.getContentDescription());
+            ret = true;
+        }
+        if (ret)
+            Log.v(TAG, "Existing description found for node");
+        return ret;
+    }
+
     private Bitmap getButtonImageFromScreenshot(AccessibilityNodeInfo buttonNode, Bitmap screenShotBM) {
         Rect rectTest = new Rect();
         // Copy the dimensions of the button to the rectTest object
@@ -94,35 +131,17 @@ public class UnblindAccessibilityService extends AccessibilityService implements
             return;
         }
 
-        if (source.getText() != null || source.getContentDescription() != null || event.getText().size() != 0) {
-            Log.e(TAG, "Existing description found");
-            if (source.getText() != null) {
-                Log.e(TAG, "source text: " + source.getText());
-            } else if (event.getText().size() != 0) {
-                Log.e(TAG, "event text: " + event.getText());
-            } else if (event.getContentDescription() != null) {
-                Log.e(TAG, "content description: " + event.getContentDescription());
-            }
-            return;
-        }
-        String currentNodeClassName = (String) source.getClassName();
-        boolean ignoreEvent = true;
-        if (currentNodeClassName != null) {
-            if (currentNodeClassName.equals("android.widget.ImageButton")) {
-                ignoreEvent = false;
-            }
-            if (currentNodeClassName.equals("android.widget.ImageView")) {
-                ignoreEvent = false;
-            }
-            if (currentNodeClassName.equals("android.widget.FrameLayout")) {
-                ignoreEvent = false;
-            }
-        }
-        if (ignoreEvent == true) {
-            Log.v(TAG, "currentNodeClassName is not android.widget.ImageButton or android.widget.ImageView: " + currentNodeClassName);
+        if (nodeHasDescription(source)) {
             source.recycle();
             return;
         }
+
+        if (shouldIgnoreNode(source)) {
+            // We don't try to describe non-buttons or basic image views at this point
+            source.recycle();
+            return;
+        }
+
         if (ttsReady)
             tts.speak(" ", 2, null,null);
 
