@@ -66,7 +66,7 @@ public class UnblindAccessibilityService extends AccessibilityService implements
 
         String currentNodeClassName = (String) source.getClassName();
         boolean ignoreNode = true;
-        if(currentNodeClassName !=null)  {
+        if (currentNodeClassName != null) {
             if (currentNodeClassName.equals("android.widget.ImageButton")) {
                 ignoreNode = false;
             }
@@ -114,6 +114,16 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         return buttonBitmap;
     }
 
+    private String checkIconCache(Bitmap buttonImage) {
+        byte[] base64EncodedBitmap = UnblindMediator.bitmapToBytes(buttonImage);
+        String storedLabel = null;
+        if(mBound) {
+            Log.v(TAG, "Checking SP");
+            storedLabel = mService.getSharedData(UnblindMediator.TAG, base64EncodedBitmap);
+        }
+        return storedLabel;
+    }
+
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void announceTextFromEvent(String text) {
         if (ttsReady) {
@@ -158,12 +168,7 @@ public class UnblindAccessibilityService extends AccessibilityService implements
                 Bitmap buttonImage = getButtonImageFromScreenshot(source, screenShotBM).copy(Bitmap.Config.ARGB_8888, true);
 
                 // check screenshot against storage before notifying
-                byte[] base64EncodedBitmap = UnblindMediator.bitmapToBytes(buttonImage);
-                String storedLabel = null;
-                if (mBound) {
-                    Log.v(TAG, "Checking SP");
-                    storedLabel = mService.getSharedData(UnblindMediator.TAG, base64EncodedBitmap);
-                }
+                String storedLabel = checkIconCache(buttonImage);
 
                 // if the label already exists, don't notify
                 if (storedLabel != null) {
