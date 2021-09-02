@@ -34,7 +34,7 @@ public class ModelService extends Service implements ColleagueInterface {
     DatabaseService mService;
     UnblindMediator mediator;
     WorkManager mWorkManager;
-    UnblindDataObject currentElement = new UnblindDataObject(null, "", true);
+    UnblindDataObject currentElement = null;
     boolean mBound = false;
 
     TfliteClassifier tfliteClassifier;
@@ -83,10 +83,17 @@ public class ModelService extends Service implements ColleagueInterface {
 
     @Override
     public void update() {
-        if ((!mediator.checkIncomingEmpty()) && (currentElement.iconImage != mediator.getElementFromIncoming().iconImage)){
-            currentElement = mediator.serveElementFromIncoming();
-            runPredication();
+        if (mediator.checkIncomingEmpty()) {
+            return;
         }
+        if (currentElement != null) {
+            Log.v(TAG, "ModelService is deferring processing...");
+            // When the current image has been processed,
+            // it will set currentElement to null and call this update method
+            return;
+        }
+        currentElement = mediator.serveElementFromIncoming();
+        Log.v(TAG, "ModelService is about to processing icon data...");
         Log.e(TAG, "updating element on model");
     }
 
@@ -144,6 +151,7 @@ public class ModelService extends Service implements ColleagueInterface {
         mService.setSharedData(UnblindMediator.TAG, base64EncodedBitmap, result);
 
         mediator.pushElementToOutgoing(currentElement);
+        currentElement = null;
         mediator.notifyObservers();
     }
 
