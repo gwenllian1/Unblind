@@ -7,15 +7,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.graphics.Bitmap;
-import android.content.SharedPreferences;
-import android.graphics.BitmapFactory;
 import android.graphics.ColorSpace;
 import android.graphics.Rect;
 import android.hardware.HardwareBuffer;
 import android.os.Build;
 import android.os.IBinder;
 import android.speech.tts.TextToSpeech;
-import android.util.Base64;
 import android.util.Log;
 import android.util.Pair;
 import android.view.Display;
@@ -26,9 +23,6 @@ import android.view.accessibility.AccessibilityNodeInfo;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Locale;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -90,22 +84,6 @@ public class UnblindAccessibilityService extends AccessibilityService implements
             tts.speak("Double Tap to activate", 1, null, null);
         }
     }
-
-//    @RequiresApi(api = Build.VERSION_CODES.O)
-//    private void announceTextFromEvent(String text, AccessibilityEvent event) {
-//        if (manager.isEnabled()) {
-//            AccessibilityEvent e = AccessibilityEvent.obtain();
-//            e.setEventType(AccessibilityEvent.TYPE_ANNOUNCEMENT);
-//            e.setClassName(getClass().getName());
-//            e.setPackageName(event.getPackageName());
-//            e.getText().add(text);
-//            manager.sendAccessibilityEvent(e);
-//            Log.e(TAG, "No description found. Custom description added here");
-//        }
-//        else {
-//            Log.e(TAG, "For some reason the manager did not work");
-//        }
-//    }
 
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
@@ -254,46 +232,27 @@ public class UnblindAccessibilityService extends AccessibilityService implements
 
     @Override
     public void update() {
-        /*System.out.println(currentElement);
-        Log.v(TAG, "update");
+        // Update mediator if the out queue is not empty AND the outgoing element is not the same as the current element?
+        Log.v(TAG,"Update");
+
         if (mediator.checkOutgoingEmpty()) {
             Log.v(TAG, "outgoing queue is empty");
             return;
         }
-        Pair<Bitmap, String> tempElement = mediator.serveElementFromOutgoing();
-        if (tempElement == null)
-            return;
-        Log.v(TAG, "update - " + tempElement.second);
-        System.out.println(tempElement);
-        if (!currentElement.second.equals(tempElement.second)) {
-            currentElement = tempElement;
-            Log.e(TAG, "updating on accessibility element");
-            Log.e(TAG, currentElement.second);
-            // currentElement is now complete, can be sent to TalkBack
-            announceTextFromEvent(currentElement.second);
-            // if the in queue is not empty, notify observers
-            if (!mediator.checkIncomingEmpty()) {
-                mediator.notifyObservers();
-            }
-        }*/
-        // Update mediator if the out queue is not empty AND the outgoing element is not the same as the current element?
-        Log.v(TAG,"Update");
+
         if(mediator.getElementFromOutgoing() == null)
             return;
-//        if (!mediator.checkOutgoingEmpty() && !currentElement.second.equals(mediator.getElementFromOutgoing().second)) {
-            System.out.println(currentElement);
-            System.out.println(mediator.getElementFromOutgoing());
-            currentElement = mediator.serveElementFromOutgoing();
-            Log.e(TAG, "updating on accessibility element");
-            Log.e(TAG, currentElement.second);
-            // currentElement is now complete, can be sent to TalkBack
-            announceTextFromEvent(currentElement.second);
-            // if the in queue is not empty, notify observers
-            if (!mediator.checkIncomingEmpty()) {
-                mediator.notifyObservers();
-            }
-//        }
 
-
+        System.out.println(currentElement);
+        System.out.println(mediator.getElementFromOutgoing());
+        currentElement = mediator.serveElementFromOutgoing();
+        Log.e(TAG, "updating on accessibility element");
+        Log.e(TAG, currentElement.second);
+        // currentElement is now complete, can be sent to TalkBack
+        announceTextFromEvent(currentElement.second);
+        // if the in queue is not empty, notify observers
+        if (!mediator.checkIncomingEmpty()) {
+            mediator.notifyObservers();
+        }
     }
 }
