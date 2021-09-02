@@ -113,6 +113,72 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         return buttonBitmap;
     }
 
+    private AccessibilityNodeInfo getHighestParent(AccessibilityNodeInfo source) {
+        Log.v(TAG, "Finding highest parent of initial node in batchProcess");
+        AccessibilityNodeInfo tempNode = source.getParent();
+        AccessibilityNodeInfo returnNode = source;
+        while (tempNode != null) {
+            Log.v(TAG, "Still finding highest parent of initial node in batchProcess...");
+            returnNode = tempNode;
+            tempNode = returnNode.getParent();
+        }
+        return returnNode;
+    }
+
+    private boolean nodeHasRelevantChildren(AccessibilityNodeInfo node) {
+        if (node == null) {
+            return false;
+        }
+
+        if (!shouldIgnoreNode(node) && !nodeHasDescription(node)) {
+            Log.v(TAG, "Node is a relevant type and has no description");
+            return true;
+        }
+        for (int i = 0; i < node.getChildCount(); i++) {
+            boolean temp = nodeHasRelevantChildren(node.getChild(i));
+            if (temp) {
+                Log.v(TAG, "Node has at least one relevant, unlabelled child node");
+                return true;
+            }
+        }
+        Log.v(TAG, "Node has no relevant children nodes");
+        return false;
+    }
+
+    private void batchProcess(AccessibilityNodeInfo source, Bitmap screenshot) {
+        if (source == null) {
+            return;
+        }
+
+        Log.v(TAG, "batchProcess - childCount = " + Integer.toString(source.getChildCount()));
+        if (!shouldIgnoreNode(source)) {
+            // To avoid unnecessary usage of the model, below check should be enabled when not testing
+            if (nodeHasDescription(source) == false) {
+                Log.v(TAG, "Getting bitmap for node in batch");
+                Bitmap buttonImage = getButtonImageFromScreenshot(source, screenshot).copy(Bitmap.Config.ARGB_8888, true);;
+
+                // Disable cache lookup for now
+                String storedLabel = checkIconCache(buttonImage);
+                if (storedLabel != null) {
+                    Log.v(TAG, "Found cached batch icon: " + storedLabel);
+                    //announceTextFromEvent(storedLabel);
+                } else if (mBound) {
+                    // else if the label hasn't been seen before, notify
+                    UnblindDataObject element = new UnblindDataObject(buttonImage, null, true);
+                    Log.v(TAG, "batchProcess pushing element to incoming queue : " + element);
+                    mediator.pushElementToIncoming(element);
+                    Log.v(TAG, "batchProcess finished pushing element to incoming queue : " + element);
+                    mediator.notifyObservers();
+                }
+            }
+        }
+
+        for (int i = 0; i < source.getChildCount(); i++) {
+            batchProcess(source.getChild(i), screenshot);
+        }
+    }
+
+
     private String checkIconCache(Bitmap buttonImage) {
         byte[] base64EncodedBitmap = UnblindMediator.bitmapToBytes(buttonImage);
         String storedLabel = null;
@@ -185,6 +251,7 @@ public class UnblindAccessibilityService extends AccessibilityService implements
                         mediator.notifyObservers();
                     }
                 }
+                batchProcess(getHighestParent(source), screenShotBM);
                 source.recycle();
                 return;
             }
