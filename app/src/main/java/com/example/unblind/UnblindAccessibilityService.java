@@ -337,6 +337,12 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         System.out.println(mediator.getElementFromOutgoing());
         currentElement = mediator.serveElementFromOutgoing();
         Log.e(TAG, "updating on accessibility element");
+
+        if (currentElement.batchStatus) {
+            Log.v(TAG, "Received generated batch label: " + currentElement.iconLabel);
+            Log.v(TAG, "Not speaking batch label...");
+            return;
+        }
         Log.e(TAG, currentElement.iconLabel);
         // currentElement is now complete, can be sent to TalkBack
         announceTextFromEvent(currentElement.iconLabel);
