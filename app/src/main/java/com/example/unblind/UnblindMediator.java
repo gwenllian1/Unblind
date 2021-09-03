@@ -13,9 +13,8 @@ import java.util.ArrayList;
 
 public class UnblindMediator {
     private ArrayList<ColleagueInterface> observers;
-    private Queue<Pair<Bitmap, String>> IncomingQueue = new ArrayDeque<>();
-    private Queue<Pair<Bitmap, String>> OutgoingQueue = new ArrayDeque<>();
-//    private Pair<Bitmap, String> currentElement = new Pair(null, null);
+    private Queue<UnblindDataObject> IncomingQueue = new ArrayDeque<>();
+    private Queue<UnblindDataObject> OutgoingQueue = new ArrayDeque<>();
     public static final String TAG = "UnblindMediator";
 
     public static byte[] bitmapToBytes(Bitmap bitmap) {
@@ -24,11 +23,6 @@ public class UnblindMediator {
         bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream);
         return byteArrayOutputStream.toByteArray();
     }
-
-//    public static Bitmap stringToBitmap(String string) {
-//        byte[] decodedString = Base64.decode(string, Base64.DEFAULT);
-//        return BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
-//    }
 
     public UnblindMediator() {
         this.observers = new ArrayList<ColleagueInterface>();
@@ -60,29 +54,29 @@ public class UnblindMediator {
         return (IncomingQueue.size() > 1);
     }
 
-    public void pushElementToIncoming(Pair<Bitmap, String> element){
+    public void pushElementToIncoming(UnblindDataObject element){
         IncomingQueue.add(element);
         Log.e(TAG, "adding incoming element");
     }
 
-    public Pair<Bitmap, String> getElementFromIncoming(){
+    public UnblindDataObject getElementFromIncoming(){
         return IncomingQueue.peek();
     }
 
-    public Pair<Bitmap, String> serveElementFromIncoming(){
+    public UnblindDataObject serveElementFromIncoming(){
         return IncomingQueue.remove();
     }
 
-    public void pushElementToOutgoing(Pair<Bitmap, String> element){
+    public void pushElementToOutgoing(UnblindDataObject element){
         OutgoingQueue.add(element);
         Log.e(TAG, "adding outgoing element");
     }
 
-    public Pair<Bitmap, String> getElementFromOutgoing(){
+    public UnblindDataObject getElementFromOutgoing(){
         return OutgoingQueue.peek();
     }
 
-    public Pair<Bitmap, String> serveElementFromOutgoing(){
+    public UnblindDataObject serveElementFromOutgoing(){
         return OutgoingQueue.remove();
     }
 
