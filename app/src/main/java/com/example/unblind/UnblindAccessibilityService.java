@@ -35,8 +35,9 @@ public class UnblindAccessibilityService extends AccessibilityService implements
     private boolean mBound = false;
     private UnblindMediator mediator;
     private UnblindDataObject currentElement = new UnblindDataObject(null, "", true);
-    private TextToSpeech tts;
+    private TextToSpeech defaultTextToSpeech;
     private boolean ttsReady = false;
+    private final Translator translator = new Translator(getApplicationContext());
 
     private final ServiceConnection mConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
@@ -192,8 +193,8 @@ public class UnblindAccessibilityService extends AccessibilityService implements
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void announceTextFromEvent(String text) {
         if (ttsReady) {
-            tts.speak(text, 1, null, null);
-            tts.speak("Double Tap to activate", 1, null, null);
+            defaultTextToSpeech.speak(text, 1, null, null);
+            defaultTextToSpeech.speak("Double Tap to activate", 1, null, null);
         }
     }
 
@@ -218,7 +219,7 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         }
 
         if (ttsReady)
-            tts.speak(" ", 2, null,null);
+            defaultTextToSpeech.speak(" ", 2, null,null);
 
         // From this point, we can assume the source UI element is an image button
         // which has been clicked/tapped
@@ -243,7 +244,7 @@ public class UnblindAccessibilityService extends AccessibilityService implements
                 } else if (mBound) {
                     // else if the label hasn't been seen before, notify
                     if (ttsReady)
-                        tts.speak("Processing labels", 2, null,null);
+                        defaultTextToSpeech.speak("Processing labels", 2, null,null);
                     Log.e(TAG, "setting on mediator");
                     mediator.pushElementToIncoming(new UnblindDataObject(buttonImage, "", false));
                     currentElement = mediator.getElementFromIncoming();
@@ -304,16 +305,27 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         Intent intent = new Intent(this, DatabaseService.class);
         startService(intent);
         bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
-        tts = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
+        defaultTextToSpeech = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
             @Override
             public void onInit(int status) {
-                Log.d("Test","123: " + status);
                 if (status != TextToSpeech.ERROR) {
-                    Log.d("Test","123");
                     // Setting locale, speech rate and voice pitch
-                    tts.setLanguage(Locale.UK);
-                    tts.setSpeechRate(1.0f);
-                    tts.setPitch(1.0f);
+                    defaultTextToSpeech.setLanguage(Locale.UK);
+                    defaultTextToSpeech.setSpeechRate(1.0f);
+                    defaultTextToSpeech.setPitch(1.0f);
+                    ttsReady = true;
+                }
+            }
+        });
+
+        defaultTextToSpeech = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+                if (status != TextToSpeech.ERROR) {
+                    // Setting locale, speech rate and voice pitch
+                    defaultTextToSpeech.setLanguage(Locale.CHINA);
+                    defaultTextToSpeech.setSpeechRate(1.0f);
+                    defaultTextToSpeech.setPitch(1.0f);
                     ttsReady = true;
                 }
             }
