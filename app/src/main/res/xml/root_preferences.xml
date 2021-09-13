@@ -29,11 +29,6 @@
         app:icon="@drawable/ic_outline_info_24"
         android:layout="@layout/preference_title_layout">
 
-<!--        <EditTextPreference-->
-<!--            app:key="signature"-->
-<!--            app:title="@string/signature_title"-->
-<!--            app:useSimpleSummaryProvider="true" />-->
-
         <Preference
             android:title="Unblind Services"
             android:key="@string/accessibility_button"

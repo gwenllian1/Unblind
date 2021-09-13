@@ -7,6 +7,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.text.TextUtils;
+import android.util.Log;
 import android.view.accessibility.AccessibilityManager;
 
 import androidx.core.content.ContextCompat;
@@ -19,6 +21,21 @@ public class SettingsFragment extends PreferenceFragmentCompat {
 
     Context mContext = this.getContext();
 
+    public boolean isAccessServiceEnabled(Context context, Class accessibilityServiceClass)
+    {
+        String prefString = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES);
+
+        return prefString!= null && prefString.contains(context.getPackageName() + "/" + accessibilityServiceClass.getName());
+    }
+
+    public void serviceCheck (Preference button) {
+        if (isAccessServiceEnabled(getContext(), UnblindAccessibilityService.class)) {
+            button.setTitle("Service Status: ON");
+        } else {
+            button.setTitle("Service Status: OFF");
+        }
+    }
+
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
         setPreferencesFromResource(R.xml.root_preferences, rootKey);
@@ -28,14 +45,6 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             public boolean onPreferenceClick(Preference preference) {
                 //Code below for when Settings Preference is clicked
                 startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS));
-                AccessibilityManager am = (AccessibilityManager) getContext().getSystemService(ACCESSIBILITY_SERVICE);
-                boolean isUnblindEnabled = am.isEnabled();
-                if (isUnblindEnabled) {
-                    button.setTitle("Service Status: ON");
-                }
-                else {
-                    button.setTitle("Service Status: OFF");
-                }
                 return true;
             }
         });
@@ -48,60 +57,19 @@ public class SettingsFragment extends PreferenceFragmentCompat {
 
         // Service Status Display (ON/OFF)
         Preference button = findPreference(getString(R.string.service_button));
-        AccessibilityManager am = (AccessibilityManager) getContext().getSystemService(ACCESSIBILITY_SERVICE);
-        boolean isUnblindEnabled = am.isEnabled();
-        if (isUnblindEnabled) {
-            button.setTitle("Service Status: ON");
-        } else {
-            button.setTitle("Service Status: OFF");
-        }
+
+        serviceCheck(button);
 
     }
 
     @Override
     public void onStart() {
         super.onStart();
-        //setContentView(R.layout.activity_main);
+
         // Service Status Display (ON/OFF)
         Preference button = findPreference(getString(R.string.service_button));
-        AccessibilityManager am = (AccessibilityManager) getContext().getSystemService(ACCESSIBILITY_SERVICE);
-        boolean isUnblindEnabled = am.isEnabled();
-        if (isUnblindEnabled) {
-            button.setTitle("Service Status: ON");
-        } else {
-            button.setTitle("Service Status: OFF");
-        }
 
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-        // Service Status Display (ON/OFF)
-        Preference button = findPreference(getString(R.string.service_button));
-        AccessibilityManager am = (AccessibilityManager) getContext().getSystemService(ACCESSIBILITY_SERVICE);
-        boolean isUnblindEnabled = am.isEnabled();
-        if (isUnblindEnabled) {
-            button.setTitle("Service Status: ON");
-        } else {
-            button.setTitle("Service Status: OFF");
-        }
-
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        // Service Status Display (ON/OFF)
-        Preference button = findPreference(getString(R.string.service_button));
-        AccessibilityManager am = (AccessibilityManager) getContext().getSystemService(ACCESSIBILITY_SERVICE);
-        boolean isUnblindEnabled = am.isEnabled();
-        if (isUnblindEnabled) {
-            button.setTitle("Service Status: ON");
-        } else {
-            button.setTitle("Service Status: OFF");
-        }
-
+        serviceCheck(button);
     }
 
 }
