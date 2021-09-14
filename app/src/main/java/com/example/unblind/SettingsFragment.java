@@ -39,6 +39,16 @@ public class SettingsFragment extends PreferenceFragmentCompat {
                 return true;
             }
         });
+        Preference advancedSettingButton = findPreference(getString(R.string.advanced_settings));
+        advancedSettingButton.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+            @Override
+            public boolean onPreferenceClick(Preference preference) {
+                //Code below for when Settings Preference is clicked
+                Intent intent = new Intent(getContext(), ConfigActivity.class);
+                startActivity(intent);
+                return true;
+            }
+        });
 
     }
 

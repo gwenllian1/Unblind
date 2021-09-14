@@ -6,6 +6,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.ColorSpace;
 import android.graphics.Rect;
@@ -29,6 +30,7 @@ import java.util.concurrent.TimeUnit;
 
 public class UnblindAccessibilityService extends AccessibilityService implements ColleagueInterface {
     private static final String TAG = "UnBlind AS";
+
     private final ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(10, 10, 15, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
     DatabaseService mService;
     private AccessibilityManager manager;
@@ -37,7 +39,8 @@ public class UnblindAccessibilityService extends AccessibilityService implements
     private UnblindDataObject currentElement = new UnblindDataObject(null, "", true);
     private TextToSpeech defaultTextToSpeech;
     private boolean ttsReady = false;
-    private final Translator translator = new Translator(getApplicationContext());
+    private Translator translator;
+
 
     private final ServiceConnection mConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
@@ -305,28 +308,30 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         Intent intent = new Intent(this, DatabaseService.class);
         startService(intent);
         bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
-        defaultTextToSpeech = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
-            @Override
-            public void onInit(int status) {
-                if (status != TextToSpeech.ERROR) {
-                    // Setting locale, speech rate and voice pitch
-                    defaultTextToSpeech.setLanguage(Locale.UK);
-                    defaultTextToSpeech.setSpeechRate(1.0f);
-                    defaultTextToSpeech.setPitch(1.0f);
-                    ttsReady = true;
-                }
-            }
-        });
+        setUpTextToSpeech();
+        translator = new Translator(getApplicationContext());
+    }
 
+    public void setUpTextToSpeech(){
+        SharedPreferences sharedPreferences =  getSharedPreferences(ConfigActivity.AUDIO_FEEDBACK_CONFIG,0);;
+        Locale locale = Locale.forLanguageTag(sharedPreferences.getString(ConfigActivity.AUDIO_ACCENT,"en-US")) ;
+        Float speechRate = sharedPreferences.getFloat(ConfigActivity.AUDIO_SPEECH_RATE,1.0f);
+        Float pitch = sharedPreferences.getFloat(ConfigActivity.AUDIO_PITCH,1.0f);
         defaultTextToSpeech = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
             @Override
             public void onInit(int status) {
-                if (status != TextToSpeech.ERROR) {
+                if (status == TextToSpeech.SUCCESS) {
                     // Setting locale, speech rate and voice pitch
-                    defaultTextToSpeech.setLanguage(Locale.CHINA);
-                    defaultTextToSpeech.setSpeechRate(1.0f);
-                    defaultTextToSpeech.setPitch(1.0f);
+                    defaultTextToSpeech.setLanguage(locale);
+                    defaultTextToSpeech.setSpeechRate(speechRate);
+                    defaultTextToSpeech.setPitch(pitch);
                     ttsReady = true;
+                } else if (status == TextToSpeech.ERROR) {
+                    Log.d(TAG,"Error starting Text-to-speech");
+                } else if (status == TextToSpeech.LANG_NOT_SUPPORTED  ) {
+                    Log.d(TAG,"Language not supported for Text-to-speech");
+                }  else {
+                    Log.d(TAG,"Text-to-speech failed, error code: " +status);
                 }
             }
         });

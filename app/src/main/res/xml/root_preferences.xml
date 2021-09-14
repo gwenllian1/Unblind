@@ -22,6 +22,12 @@
             app:summaryOn="@string/activate_notification_summary_on"
             app:title="@string/activate_notification_title"
             />
+        <Preference
+            android:title="Advanced Settings"
+            android:key="@string/advanced_settings"
+            android:summary="@string/advanced_settings_summary"
+
+            />
 
     </PreferenceCategory>
 

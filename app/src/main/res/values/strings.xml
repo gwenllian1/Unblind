@@ -68,4 +68,6 @@ visualising on screen elements.</string>
     <string name="service_status_off">Service Status: OFF</string>
     <string name="service_status_on">Service Status: ON</string>
     <string name="go_to_settings">Click to go to Accessibility Settings</string>
+    <string name="advanced_settings">Advanced settings</string>
+    <string name="advanced_settings_summary">Click to adjust audio feedback configuration</string>
 </resources>

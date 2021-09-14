@@ -28,6 +28,11 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".ConfigActivity"
+            android:label="@string/app_name"
+            android:theme="@style/Theme.Unblind.NoActionBar">
+        </activity>
         <service android:name=".UnblindAccessibilityService"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
             android:label="@string/accessibility_service_label">
