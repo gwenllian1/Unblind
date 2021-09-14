@@ -1,25 +1,14 @@
 package com.example.unblind;
 
-import static android.content.Context.ACCESSIBILITY_SERVICE;
-
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.text.TextUtils;
-import android.util.Log;
-import android.view.accessibility.AccessibilityManager;
 
-import androidx.core.content.ContextCompat;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
-import androidx.preference.PreferenceManager;
-import androidx.preference.SwitchPreferenceCompat;
 
 public class SettingsFragment extends PreferenceFragmentCompat {
-
-    Context mContext = this.getContext();
 
     public boolean isAccessServiceEnabled(Context context, Class accessibilityServiceClass)
     {
