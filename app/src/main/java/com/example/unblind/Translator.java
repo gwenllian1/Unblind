@@ -18,9 +18,8 @@ public class Translator {
 
     private void setup(Context context) {
 
-        String content = getStringFromFile("vocab_data.txt", context);
-        System.out.println(content);
-        String[] items = content.split(";");
+        String content = getStringFromFile("vocab_data.txt", context);      // get all the content of the vocab file.
+        String[] items = content.split(";");        // split the data to build vocab data structure
         for (String item : items) {
             String[] itemLanguage = item.split(",");
             vocabulary.add(itemLanguage);
@@ -28,7 +27,7 @@ public class Translator {
     }
 
     public static String convertStreamToString(InputStream is) throws Exception {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+        BufferedReader reader = new BufferedReader(new InputStreamReader(is));  // read data from txt file
         StringBuilder sb = new StringBuilder();
         String line = null;
         while ((line = reader.readLine()) != null) {
@@ -62,11 +61,11 @@ public class Translator {
     }
 
     public String searchMatchingLanguageLabel(String englishLabel, int desiredLanguageCode) {
-        for (String[] item : vocabulary) {
+        for (String[] item : vocabulary) {  // find the label inside the dictionary
             if (item[0].toLowerCase().equals(englishLabel.toLowerCase())) {
                 return item[desiredLanguageCode];
             }
         }
-        return englishLabel;
+        return englishLabel;        // return english label if there are no matched string for the other language found.
     }
 }

@@ -13,11 +13,12 @@ public class ConfigActivity extends AppCompatActivity {
     static final String AUDIO_ACCENT = "audio_accent";
     static final String AUDIO_SPEECH_RATE = "audio_speech_rate";
     static final String AUDIO_PITCH = "audio_pitch";
+    static final String AUDIO_LANGUAGE = "audio_language";
 
     Locale location = Locale.UK;
     float speechRate = 1.0f;
     float pitch = 1.0f;
-
+    int languageCode = 0;
     SharedPreferences sharedPreferences;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,6 +31,7 @@ public class ConfigActivity extends AppCompatActivity {
         editor.putString(AUDIO_ACCENT, location.toLanguageTag());
         editor.putFloat(AUDIO_SPEECH_RATE,speechRate);
         editor.putFloat(AUDIO_PITCH, pitch);
+        editor.putInt(AUDIO_LANGUAGE,languageCode);
         editor.apply();
     }
 }

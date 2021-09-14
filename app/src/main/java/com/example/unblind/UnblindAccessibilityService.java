@@ -30,7 +30,7 @@ import java.util.concurrent.TimeUnit;
 
 public class UnblindAccessibilityService extends AccessibilityService implements ColleagueInterface {
     private static final String TAG = "UnBlind AS";
-
+    private int languageCode = 0;
     private final ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(10, 10, 15, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
     DatabaseService mService;
     private AccessibilityManager manager;
@@ -193,11 +193,13 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         return storedLabel;
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
-    private void announceTextFromEvent(String text) {
-        if (ttsReady) {
-            defaultTextToSpeech.speak(text, 1, null, null);
-            defaultTextToSpeech.speak("Double Tap to activate", 1, null, null);
+    private void announceTextFromEvent(String text, int mode) {
+        String translatedText = translator.searchMatchingLanguageLabel(text,languageCode);
+        if (!ttsReady) {
+            Log.d(TAG, "Text-to-speech is not available, attempt to reconnect");
+            setUpTextToSpeech();
+        } else {
+            defaultTextToSpeech.speak(translatedText, mode, null, null);
         }
     }
 
@@ -221,8 +223,7 @@ public class UnblindAccessibilityService extends AccessibilityService implements
             return;
         }
 
-        if (ttsReady)
-            defaultTextToSpeech.speak(" ", 2, null,null);
+        announceTextFromEvent(" ", 2);
 
         // From this point, we can assume the source UI element is an image button
         // which has been clicked/tapped
@@ -246,8 +247,7 @@ public class UnblindAccessibilityService extends AccessibilityService implements
                     update();
                 } else if (mBound) {
                     // else if the label hasn't been seen before, notify
-                    if (ttsReady)
-                        defaultTextToSpeech.speak("Processing labels", 2, null,null);
+                    announceTextFromEvent(" ", 2);
                     Log.e(TAG, "setting on mediator");
                     mediator.pushElementToIncoming(new UnblindDataObject(buttonImage, "", false));
                     currentElement = mediator.getElementFromIncoming();
@@ -317,6 +317,8 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         Locale locale = Locale.forLanguageTag(sharedPreferences.getString(ConfigActivity.AUDIO_ACCENT,"en-US")) ;
         Float speechRate = sharedPreferences.getFloat(ConfigActivity.AUDIO_SPEECH_RATE,1.0f);
         Float pitch = sharedPreferences.getFloat(ConfigActivity.AUDIO_PITCH,1.0f);
+        languageCode = sharedPreferences.getInt(ConfigActivity.AUDIO_LANGUAGE,0);
+
         defaultTextToSpeech = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
             @Override
             public void onInit(int status) {
@@ -362,7 +364,8 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         }
         Log.e(TAG, currentElement.iconLabel);
         // currentElement is now complete, can be sent to TalkBack
-        announceTextFromEvent(currentElement.iconLabel);
+        announceTextFromEvent(currentElement.iconLabel, 1);
+        announceTextFromEvent("Double Tap to activate", 1);
         // if the in queue is not empty, notify observers
         if (!mediator.checkIncomingEmpty()) {
             mediator.notifyObservers();
