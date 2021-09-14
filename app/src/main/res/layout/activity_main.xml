@@ -59,5 +59,13 @@
 
     </androidx.core.widget.NestedScrollView>
 
+        <TextView
+            android:id="@+id/textView2"
+            android:layout_width="163dp"
+            android:layout_height="65dp"
+            android:text="@string/service_status_off"
+            android:textSize="24sp"
+            android:visibility="visible"
+            app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

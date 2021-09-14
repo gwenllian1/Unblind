@@ -1,7 +1,5 @@
 package com.example.unblind;
 
-import android.accessibilityservice.AccessibilityService;
-import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -11,19 +9,16 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.IBinder;
-import android.provider.Settings;
 import android.util.Log;
-import android.view.accessibility.AccessibilityManager;
+import android.util.Pair;
+
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
-import androidx.preference.PreferenceManager;
-import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
 import com.example.unblind.model.TfliteClassifier;
 
