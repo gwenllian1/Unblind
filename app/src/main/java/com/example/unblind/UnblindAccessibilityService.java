@@ -37,9 +37,10 @@ public class UnblindAccessibilityService extends AccessibilityService implements
     private boolean mBound = false;
     private UnblindMediator mediator;
     private UnblindDataObject currentElement = new UnblindDataObject(null, "", true);
-    private TextToSpeech defaultTextToSpeech;
+    private UnblindTextToSpeech defaultTextToSpeech;
     private boolean ttsReady = false;
     private Translator translator;
+
 
 
     private final ServiceConnection mConnection = new ServiceConnection() {
@@ -58,6 +59,9 @@ public class UnblindAccessibilityService extends AccessibilityService implements
             mBound = false;
         }
     };
+
+    public UnblindAccessibilityService() {
+    }
 
     private void setMediator(UnblindMediator mediator) {
         this.mediator = mediator;
@@ -197,9 +201,9 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         String translatedText = translator.searchMatchingLanguageLabel(text,languageCode);
         if (!ttsReady) {
             Log.d(TAG, "Text-to-speech is not available, attempt to reconnect");
-            setUpTextToSpeech();
+            defaultTextToSpeech = new UnblindTextToSpeech(this);
         } else {
-            defaultTextToSpeech.speak(translatedText, mode, null, null);
+            defaultTextToSpeech.ttsSpeak(translatedText, mode, null, null);
         }
     }
 
@@ -308,35 +312,10 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         Intent intent = new Intent(this, DatabaseService.class);
         startService(intent);
         bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
-        setUpTextToSpeech();
+
+        defaultTextToSpeech = new UnblindTextToSpeech(this);
+        ttsReady = true;
         translator = new Translator(getApplicationContext());
-    }
-
-    public void setUpTextToSpeech(){
-        SharedPreferences sharedPreferences =  getSharedPreferences(ConfigActivity.AUDIO_FEEDBACK_CONFIG,0);;
-        Locale locale = Locale.forLanguageTag(sharedPreferences.getString(ConfigActivity.AUDIO_ACCENT,"en-US")) ;
-        Float speechRate = sharedPreferences.getFloat(ConfigActivity.AUDIO_SPEECH_RATE,1.0f);
-        Float pitch = sharedPreferences.getFloat(ConfigActivity.AUDIO_PITCH,1.0f);
-        languageCode = sharedPreferences.getInt(ConfigActivity.AUDIO_LANGUAGE,0);
-
-        defaultTextToSpeech = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
-            @Override
-            public void onInit(int status) {
-                if (status == TextToSpeech.SUCCESS) {
-                    // Setting locale, speech rate and voice pitch
-                    defaultTextToSpeech.setLanguage(locale);
-                    defaultTextToSpeech.setSpeechRate(speechRate);
-                    defaultTextToSpeech.setPitch(pitch);
-                    ttsReady = true;
-                } else if (status == TextToSpeech.ERROR) {
-                    Log.d(TAG,"Error starting Text-to-speech");
-                } else if (status == TextToSpeech.LANG_NOT_SUPPORTED  ) {
-                    Log.d(TAG,"Language not supported for Text-to-speech");
-                }  else {
-                    Log.d(TAG,"Text-to-speech failed, error code: " +status);
-                }
-            }
-        });
     }
 
     @Override
