@@ -30,7 +30,6 @@ import java.util.concurrent.TimeUnit;
 
 public class UnblindAccessibilityService extends AccessibilityService implements ColleagueInterface {
     private static final String TAG = "UnBlind AS";
-    private int languageCode = 0;
     private final ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(10, 10, 15, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
     DatabaseService mService;
     private AccessibilityManager manager;
@@ -39,9 +38,6 @@ public class UnblindAccessibilityService extends AccessibilityService implements
     private UnblindDataObject currentElement = new UnblindDataObject(null, "", true);
     private UnblindTextToSpeech defaultTextToSpeech;
     private boolean ttsReady = false;
-    private Translator translator;
-
-
 
     private final ServiceConnection mConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
@@ -198,12 +194,11 @@ public class UnblindAccessibilityService extends AccessibilityService implements
     }
 
     private void announceTextFromEvent(String text, int mode) {
-        String translatedText = translator.searchMatchingLanguageLabel(text,languageCode);
         if (!ttsReady) {
             Log.d(TAG, "Text-to-speech is not available, attempt to reconnect");
             defaultTextToSpeech = new UnblindTextToSpeech(this);
         } else {
-            defaultTextToSpeech.ttsSpeak(translatedText, mode, null, null);
+            defaultTextToSpeech.ttsSpeak(text, mode, null, null);
         }
     }
 
@@ -315,7 +310,7 @@ public class UnblindAccessibilityService extends AccessibilityService implements
 
         defaultTextToSpeech = new UnblindTextToSpeech(this);
         ttsReady = true;
-        translator = new Translator(getApplicationContext());
+
     }
 
     @Override

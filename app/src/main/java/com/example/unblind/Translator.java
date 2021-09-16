@@ -1,6 +1,7 @@
 package com.example.unblind;
 
 import android.content.Context;
+import android.util.Log;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -62,7 +63,7 @@ public class Translator {
 
     public String searchMatchingLanguageLabel(String englishLabel, int desiredLanguageCode) {
         for (String[] item : vocabulary) {  // find the label inside the dictionary
-            if (item[0].toLowerCase().equals(englishLabel.toLowerCase())) {
+            if (item[0].toLowerCase().trim().equals(englishLabel.toLowerCase().trim()) && item.length == 3) {
                 return item[desiredLanguageCode];
             }
         }

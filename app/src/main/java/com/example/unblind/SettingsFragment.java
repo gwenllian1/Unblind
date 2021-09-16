@@ -4,7 +4,6 @@ import static android.content.Context.ACCESSIBILITY_SERVICE;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.view.accessibility.AccessibilityManager;
@@ -44,7 +43,9 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             @Override
             public boolean onPreferenceClick(Preference preference) {
                 //Code below for when Settings Preference is clicked
-                Intent intent = new Intent(getContext(), ConfigActivity.class);
+                Intent intent = new Intent();
+                intent.setAction("com.android.settings.TTS_SETTINGS");
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(intent);
                 return true;
             }
