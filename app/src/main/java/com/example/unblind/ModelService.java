@@ -1,5 +1,6 @@
 package com.example.unblind;
 
+import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -9,28 +10,27 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.graphics.Bitmap;
 import android.os.AsyncTask;
+import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
-import android.util.Pair;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
-import androidx.work.WorkManager;
+
 import com.example.unblind.model.TfliteClassifier;
 
 
 
 public class ModelService extends Service implements ColleagueInterface {
     public static final String TAG = "ModelService";
-    DatabaseService mService;
+    private final IBinder binder = new LocalBinder();
+    DatabaseService databaseService;
     UnblindMediator mediator;
-    WorkManager mWorkManager;
     UnblindDataObject currentElement = null;
-    boolean mBound = false;
+    boolean dbBound = false;
 
     TfliteClassifier tfliteClassifier;
 
@@ -57,24 +57,28 @@ public class ModelService extends Service implements ColleagueInterface {
         this.tfliteClassifier = tfliteClassifier;
     }
 
-    private final ServiceConnection mConnection = new ServiceConnection() {
+    private final ServiceConnection dbConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
             DatabaseService.LocalBinder binder = (DatabaseService.LocalBinder) service;
-            mService = binder.getService();
-            mBound = true;
+            databaseService = binder.getService();
+            dbBound = true;
             Log.e(TAG, "databaseServiceConnected");
             // get mediator
             Log.e(TAG, "bound, getting mediator");
-            mediator = mService.getUnblindMediator();
+            mediator = databaseService.getUnblindMediator();
             mediator.addObserver((ColleagueInterface) getSelf());
 
         }
 
         public void onServiceDisconnected(ComponentName className) {
             Log.e(TAG, "databaseServiceDisconnected");
-            mBound = false;
+            dbBound = false;
         }
     };
+
+    public class LocalBinder extends Binder {
+        public ModelService getService() { return ModelService.this; }
+    }
 
     @Override
     public void update() {
@@ -100,40 +104,21 @@ public class ModelService extends Service implements ColleagueInterface {
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
-        return null;
+        return binder;
     }
 
     @Override
     public void onCreate() {
         super.onCreate();
-        startNotification();
-    }
 
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.e(TAG, "Model service started");
-        super.onStartCommand(intent, flags, startId);
-//        loadClassifier();
+        // execute classifier
         new GetClassifier().execute();
+
         // bind to DatabaseService
         Intent newIntent = new Intent(this, DatabaseService.class);
-        startService(newIntent);
-        bindService(newIntent, mConnection, Context.BIND_AUTO_CREATE);
-        if(intent.getAction() != null && intent.getAction().equals(getString(R.string.turn_off))) {
-            stopForeground(true);
-        }
-        return START_NOT_STICKY;
+        bindService(newIntent, dbConnection, Context.BIND_AUTO_CREATE);
+        startNotification();
     }
-
-
-
-
-    // Client methods go here
-//    public void loadClassifier(){
-//        // use the function provided by Utils class
-//        String absolutePath = Utils.assetFilePath(this, "labeldroid.pt"); //get absolute path
-//        classifier = new Classifier(absolutePath);
-//    }
 
 
     public void runPredication(){
@@ -144,7 +129,7 @@ public class ModelService extends Service implements ColleagueInterface {
         // store classified pair into cache
         Log.v(TAG, "setting in SP");
         byte[] base64EncodedBitmap = UnblindMediator.bitmapToBytes(currentElement.iconImage);
-        mService.setSharedData(UnblindMediator.TAG, base64EncodedBitmap, result);
+        databaseService.setSharedData(UnblindMediator.TAG, base64EncodedBitmap, result);
 
         mediator.pushElementToOutgoing(currentElement);
         currentElement = null;
