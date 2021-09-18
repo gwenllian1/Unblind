@@ -9,12 +9,10 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
-import android.util.Pair;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
@@ -31,6 +29,7 @@ public class ModelService extends Service implements ColleagueInterface {
     WorkManager mWorkManager;
     UnblindDataObject currentElement = null;
     boolean mBound = false;
+    boolean batch = false;
 
     TfliteClassifier tfliteClassifier;
 
@@ -66,8 +65,8 @@ public class ModelService extends Service implements ColleagueInterface {
             // get mediator
             Log.e(TAG, "bound, getting mediator");
             mediator = mService.getUnblindMediator();
+            batch = mediator.checkModelServiceObserver();
             mediator.addObserver((ColleagueInterface) getSelf());
-
         }
 
         public void onServiceDisconnected(ComponentName className) {
@@ -78,7 +77,7 @@ public class ModelService extends Service implements ColleagueInterface {
 
     @Override
     public void update() {
-        if (mediator.checkIncomingEmpty()) {
+        if (mediator.checkIncomingImmediateQueueEmpty()) {
             return;
         }
         if (currentElement != null) {
@@ -87,7 +86,7 @@ public class ModelService extends Service implements ColleagueInterface {
             // it will set currentElement to null and call this update method
             return;
         }
-        currentElement = mediator.serveElementFromIncoming();
+        currentElement = mediator.serveElementFromIncomingImmediateQueue();
         runPredication();
         Log.v(TAG, "ModelService is about to processing icon data...");
         Log.e(TAG, "updating element on model");
@@ -146,7 +145,7 @@ public class ModelService extends Service implements ColleagueInterface {
         byte[] base64EncodedBitmap = UnblindMediator.bitmapToBytes(currentElement.iconImage);
         mService.setSharedData(UnblindMediator.TAG, base64EncodedBitmap, result);
 
-        mediator.pushElementToOutgoing(currentElement);
+        mediator.pushElementToOutgoingImmediateQueue(currentElement);
         currentElement = null;
         mediator.notifyObservers();
     }

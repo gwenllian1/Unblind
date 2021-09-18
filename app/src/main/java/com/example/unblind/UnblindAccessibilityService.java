@@ -166,7 +166,7 @@ public class UnblindAccessibilityService extends AccessibilityService implements
                     // else if the label hasn't been seen before, notify
                     UnblindDataObject element = new UnblindDataObject(buttonImage, null, true);
                     Log.v(TAG, "batchProcess pushing element to incoming queue : " + element);
-                    mediator.pushElementToIncoming(element);
+                    mediator.pushElementToIncomingImmediateQueue(element);
                     Log.v(TAG, "batchProcess finished pushing element to incoming queue : " + element);
                     mediator.notifyObservers();
                 }
@@ -238,16 +238,16 @@ public class UnblindAccessibilityService extends AccessibilityService implements
                 // if the label already exists, don't notify
                 if (storedLabel != null) {
                     Log.v(TAG, "Found in SP");
-                    mediator.pushElementToOutgoing(new UnblindDataObject(buttonImage, storedLabel, false));
+                    mediator.pushElementToOutgoingImmediateQueue(new UnblindDataObject(buttonImage, storedLabel, false));
                     update();
                 } else if (mBound) {
                     // else if the label hasn't been seen before, notify
                     if (ttsReady)
                         tts.speak("Processing labels", 2, null,null);
                     Log.e(TAG, "setting on mediator");
-                    mediator.pushElementToIncoming(new UnblindDataObject(buttonImage, "", false));
-                    currentElement = mediator.getElementFromIncoming();
-                    if (!mediator.checkIncomingSizeMoreThanOne()) {
+                    mediator.pushElementToIncomingImmediateQueue(new UnblindDataObject(buttonImage, "", false));
+                    currentElement = mediator.getElementFromIncomingImmediateQueue();
+                    if (!mediator.checkIncomingImmediateQueueSizeMoreThanOne()) {
                         mediator.notifyObservers();
                     }
                 }
@@ -325,17 +325,17 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         // Update mediator if the out queue is not empty AND the outgoing element is not the same as the current element?
         Log.v(TAG,"Update");
 
-        if (mediator.checkOutgoingEmpty()) {
+        if (mediator.checkOutgoingImmediateQueueEmpty()) {
             Log.v(TAG, "outgoing queue is empty");
             return;
         }
 
-        if(mediator.getElementFromOutgoing() == null)
+        if(mediator.getElementFromOutgoingImmediateQueue() == null)
             return;
 
         System.out.println(currentElement);
-        System.out.println(mediator.getElementFromOutgoing());
-        currentElement = mediator.serveElementFromOutgoing();
+        System.out.println(mediator.getElementFromOutgoingImmediateQueue());
+        currentElement = mediator.serveElementFromOutgoingImmediateQueue();
         Log.e(TAG, "updating on accessibility element");
 
         if (currentElement.batchStatus) {
@@ -347,7 +347,7 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         // currentElement is now complete, can be sent to TalkBack
         announceTextFromEvent(currentElement.iconLabel);
         // if the in queue is not empty, notify observers
-        if (!mediator.checkIncomingEmpty()) {
+        if (!mediator.checkIncomingImmediateQueueEmpty()) {
             mediator.notifyObservers();
         }
     }

@@ -1,24 +1,14 @@
 package com.example.unblind;
 
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.os.IBinder;
 import android.util.Pair;
 
-import org.junit.Rule;
-import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
-import org.junit.runner.RunWith;
-import org.testng.mustache.Model;
 //import androidx.test.runner.AndroidJUnit4;
 
-import com.example.unblind.DatabaseService;
-import com.example.unblind.UnblindMediator;
-
 import java.io.IOException;
-import java.io.InputStream;
 
 //@RunWith(AndroidJUnit4::class)
 public class IntegrationUnitTest {
@@ -92,7 +82,7 @@ class testClass implements ColleagueInterface
 
     @Override
     public void update() {
-        currentElement = mediator.getElementFromIncoming();
+        currentElement = mediator.getElementFromIncomingImmediateQueue();
     }
 
     public Pair<Bitmap, String> getCurrentElement(){
