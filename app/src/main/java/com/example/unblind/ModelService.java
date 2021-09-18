@@ -83,19 +83,36 @@ public class ModelService extends Service implements ColleagueInterface {
 
     @Override
     public void update() {
-        if (mediator.checkIncomingImmediateQueueEmpty()) {
-            return;
+        if (batch) {
+            if (mediator.checkIncomingBatchQueueEmpty()) {
+                return;
+            }
+            if (currentElement != null) {
+                Log.v(TAG, "ModelService is deferring processing...");
+                // When the current image has been processed,
+                // it will set currentElement to null and call this update method
+                return;
+            }
+            currentElement = mediator.serveElementFromIncomingImmediateQueue();
+            runPredication();
+            Log.v(TAG, "ModelService is about to processing icon data...");
+            Log.e(TAG, "updating element on model");
         }
-        if (currentElement != null) {
-            Log.v(TAG, "ModelService is deferring processing...");
-            // When the current image has been processed,
-            // it will set currentElement to null and call this update method
-            return;
+        else {
+            if (mediator.checkIncomingImmediateQueueEmpty()) {
+                return;
+            }
+            if (currentElement != null) {
+                Log.v(TAG, "ModelService is deferring processing...");
+                // When the current image has been processed,
+                // it will set currentElement to null and call this update method
+                return;
+            }
+            currentElement = mediator.serveElementFromIncomingImmediateQueue();
+            runPredication();
+            Log.v(TAG, "ModelService is about to processing icon data...");
+            Log.e(TAG, "updating element on model");
         }
-        currentElement = mediator.serveElementFromIncomingImmediateQueue();
-        runPredication();
-        Log.v(TAG, "ModelService is about to processing icon data...");
-        Log.e(TAG, "updating element on model");
     }
 
     public ModelService getSelf() {
@@ -132,7 +149,11 @@ public class ModelService extends Service implements ColleagueInterface {
         byte[] base64EncodedBitmap = UnblindMediator.bitmapToBytes(currentElement.iconImage);
         databaseService.setSharedData(UnblindMediator.TAG, base64EncodedBitmap, result);
 
-        mediator.pushElementToOutgoingImmediateQueue(currentElement);
+        // only push element to mediator if immediate processing
+        if (!batch) {
+            mediator.pushElementToOutgoingImmediateQueue(currentElement);
+        }
+
         currentElement = null;
         mediator.notifyObservers();
     }

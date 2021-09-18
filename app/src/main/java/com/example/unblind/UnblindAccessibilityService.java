@@ -183,7 +183,7 @@ public class UnblindAccessibilityService extends AccessibilityService implements
                     // else if the label hasn't been seen before, notify
                     UnblindDataObject element = new UnblindDataObject(buttonImage, null, true);
                     Log.v(TAG, "batchProcess pushing element to incoming queue : " + element);
-                    mediator.pushElementToIncomingImmediateQueue(element);
+                    mediator.pushElementToIncomingBatchQueue(element);
                     Log.v(TAG, "batchProcess finished pushing element to incoming queue : " + element);
                     mediator.notifyObservers();
                 }
@@ -264,6 +264,7 @@ public class UnblindAccessibilityService extends AccessibilityService implements
                     Log.e(TAG, "setting on mediator");
                     mediator.pushElementToIncomingImmediateQueue(new UnblindDataObject(buttonImage, "", false));
                     currentElement = mediator.getElementFromIncomingImmediateQueue();
+                    // TODO:test if this if condition is needed
                     if (!mediator.checkIncomingImmediateQueueSizeMoreThanOne()) {
                         mediator.notifyObservers();
                     }
