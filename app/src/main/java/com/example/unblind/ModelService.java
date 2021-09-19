@@ -93,10 +93,8 @@ public class ModelService extends Service implements ColleagueInterface {
                 // it will set currentElement to null and call this update method
                 return;
             }
-            currentElement = mediator.serveElementFromIncomingImmediateQueue();
-            runPredication();
-            Log.v(TAG, "ModelService is about to processing icon data...");
-            Log.e(TAG, "updating element on model");
+            currentElement = mediator.serveElementFromIncomingBatchQueue();
+            Log.v(TAG, "BatchService is running prediction");
         }
         else {
             if (mediator.checkIncomingImmediateQueueEmpty()) {
@@ -109,10 +107,9 @@ public class ModelService extends Service implements ColleagueInterface {
                 return;
             }
             currentElement = mediator.serveElementFromIncomingImmediateQueue();
-            runPredication();
-            Log.v(TAG, "ModelService is about to processing icon data...");
-            Log.e(TAG, "updating element on model");
+            Log.v(TAG, "ModelService is running prediction");
         }
+        runPredication();
     }
 
     public ModelService getSelf() {

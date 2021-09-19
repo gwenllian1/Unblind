@@ -32,9 +32,11 @@ public class UnblindAccessibilityService extends AccessibilityService implements
     private final ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(10, 10, 15, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
     DatabaseService databaseService;
     ModelService modelService;
+    ModelService batchService;
     private AccessibilityManager manager;
     private boolean dbBound = false;
     private boolean modelBound = false;
+    private boolean batchBound = false;
     private final ServiceConnection modelConnection = new ServiceConnection() {
 
         @Override
@@ -49,6 +51,22 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         public void onServiceDisconnected(ComponentName name) {
             Log.d(TAG, "modelServiceDisconnected");
             modelBound = false;
+        }
+    };
+    private final ServiceConnection batchConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            ModelService.LocalBinder binder = (ModelService.LocalBinder) service;
+            batchService = binder.getService();
+            batchBound = true;
+            Log.d(TAG, "batchServiceConnected");
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            Log.d(TAG, "batchServiceDisconnected");
+            batchBound = false;
         }
     };
     private UnblindMediator mediator;
@@ -326,6 +344,10 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         // Bind ModelService
         Intent modelIntent = new Intent(this, ModelService.class);
         bindService(modelIntent, modelConnection, Context.BIND_AUTO_CREATE);
+
+        // Bind BatchService
+        Intent batchIntent = new Intent(this, ModelService.class);
+        bindService(batchIntent, batchConnection, Context.BIND_AUTO_CREATE);
 
         tts = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
             @Override
