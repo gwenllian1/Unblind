@@ -13,13 +13,13 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 
 public class UnblindTextToSpeech {
-
+    private boolean ttsReady = false;
     private static final String TAG = "UnBlind AS";
     private TextToSpeech defaultTextToSpeech;
     private int languageCode = 0;
     // Global Variables which change from user input?
-    private Float speechRate;
-    private Float pitch;
+    private int speechRate = 100;
+    private int pitch = 100;
     private Locale locale;
     private Translator translator;
 
@@ -29,47 +29,16 @@ public class UnblindTextToSpeech {
 
     public void setUpTextToSpeech(UnblindAccessibilityService unblind){
         translator = new Translator(unblind);
-        int fetchedRate = 100;
-        int fetchedPitch = 100;
-        try {
-            fetchedRate = Settings.Secure.getInt(unblind.getContentResolver(), Settings.Secure.TTS_DEFAULT_RATE);
-            Log.d("testt", "The rate is: " + fetchedRate );
-        } catch (Settings.SettingNotFoundException e) {
-            e.printStackTrace();
-        }
-        try {
-            fetchedPitch = Settings.Secure.getInt(unblind.getContentResolver(), Settings.Secure.TTS_DEFAULT_PITCH);
-            Log.d("testt", "The pitch is: " + fetchedPitch);
-        } catch (Settings.SettingNotFoundException e) {
-            e.printStackTrace();
-        }
 
-
-//        SharedPreferences sharedPreferences = unblind.getSharedPreferences(ConfigActivity.AUDIO_FEEDBACK_CONFIG,0);;
-//        Locale locale = Locale.forLanguageTag(sharedPreferences.getString(ConfigActivity.AUDIO_ACCENT,"en-US")) ;
-//        Float speechRate = sharedPreferences.getFloat(ConfigActivity.AUDIO_SPEECH_RATE,1.0f);
-//        Float pitch = sharedPreferences.getFloat(ConfigActivity.AUDIO_PITCH,1.0f);
-//        languageCode = sharedPreferences.getInt(ConfigActivity.AUDIO_LANGUAGE,0);
-
-        int finalFetchedRate = fetchedRate;
-        int finalFetchedPitch = fetchedPitch;
         defaultTextToSpeech = new TextToSpeech(unblind.getApplicationContext(), new TextToSpeech.OnInitListener() {
             @Override
             public void onInit(int status) {
                 if (status == TextToSpeech.SUCCESS) {
                     // Setting locale, speech rate and voice pitch
-                    Locale locale = defaultTextToSpeech.getDefaultVoice().getLocale();
-                    Log.d(TAG, locale.toLanguageTag() + "");
-                    if (locale == Locale.SIMPLIFIED_CHINESE){
-                        languageCode = 2;
-                    } else if (locale.toLanguageTag().equals("es-ES")){
-                        Log.d(TAG,"Set language to Spanish");
-                        languageCode = 1;
-                    }
-                    defaultTextToSpeech.setLanguage(locale);
-                    defaultTextToSpeech.setSpeechRate((float) finalFetchedRate /100 );
-                    defaultTextToSpeech.setPitch((float) finalFetchedPitch /100 );
+                   // Log.d(TAG, locale.toLanguageTag() + "");
 
+                    updateTTSConfig(unblind,defaultTextToSpeech);
+                    ttsReady = true;
                 } else if (status == TextToSpeech.ERROR) {
                     Log.d(TAG,"Error starting Text-to-speech");
                 } else if (status == TextToSpeech.LANG_NOT_SUPPORTED  ) {
@@ -81,6 +50,9 @@ public class UnblindTextToSpeech {
         });
     }
 
+    public boolean isTtsReady(){
+        return ttsReady;
+    }
     public void ttsSpeak( CharSequence text,
                     int queueMode,
                     Bundle params,
@@ -90,16 +62,35 @@ public class UnblindTextToSpeech {
         defaultTextToSpeech.speak(translatedText, queueMode, params, utteranceId);
     }
 
-    public void changeTTSSpeechrate(float ttsSpeechRate){
-        defaultTextToSpeech.setSpeechRate(ttsSpeechRate);
+    public void updateTTSConfig(Context context, TextToSpeech textToSpeech){
+        try {
+            speechRate = Settings.Secure.getInt(context.getContentResolver(), Settings.Secure.TTS_DEFAULT_RATE);
+            Log.d("testt", "The rate is: " + speechRate );
+        } catch (Settings.SettingNotFoundException e) {
+            e.printStackTrace();
+        }
+        try {
+            pitch = Settings.Secure.getInt(context.getContentResolver(), Settings.Secure.TTS_DEFAULT_PITCH);
+            Log.d("testt", "The pitch is: " + pitch);
+        } catch (Settings.SettingNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        locale = defaultTextToSpeech.getDefaultVoice().getLocale();
+
+        defaultTextToSpeech.setLanguage(locale);
+        defaultTextToSpeech.setSpeechRate((float) speechRate /100 );
+        defaultTextToSpeech.setPitch((float) pitch /100 );
+        if (locale == Locale.SIMPLIFIED_CHINESE){
+            languageCode = 2;
+        } else if (locale.toLanguageTag().equals("es-ES")){
+            Log.d(TAG,"Set language to Spanish");
+            languageCode = 1;
+        } else {
+            languageCode = 0;
+        }
     }
-    public void changeTTSPitch(float ttsPitch){
-        defaultTextToSpeech.setPitch(ttsPitch);
-    }
-    public void matchTalkback(float ttsPitch, float ttsSpeechRate){ // get from talkback somehow
-        defaultTextToSpeech.setPitch(1.0f);
-        defaultTextToSpeech.setSpeechRate(1.0f);
-    }
+
     public void resetTts(float ttsPitch){
         defaultTextToSpeech.setPitch(1.0f);
         defaultTextToSpeech.setSpeechRate(1.0f);

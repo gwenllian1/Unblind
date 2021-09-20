@@ -37,7 +37,7 @@ public class UnblindAccessibilityService extends AccessibilityService implements
     private UnblindMediator mediator;
     private UnblindDataObject currentElement = new UnblindDataObject(null, "", true);
     private UnblindTextToSpeech defaultTextToSpeech;
-    private boolean ttsReady = false;
+    private TextToSpeech textToSpeechCurrentInfo;
 
     private final ServiceConnection mConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
@@ -148,6 +148,22 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         Log.v(TAG, "Node has no relevant children nodes");
         return false;
     }
+    private void getTTSCurrentInfo(){
+        textToSpeechCurrentInfo = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+                if (status == TextToSpeech.SUCCESS) {
+                    // Setting locale, speech rate and voice pitch
+
+                    // Log.d(TAG, locale.toLanguageTag() + "");
+
+                    textToSpeechCurrentInfo.setLanguage( textToSpeechCurrentInfo.getDefaultVoice().getLocale());
+
+                }
+            }
+        });
+        defaultTextToSpeech.updateTTSConfig(getApplicationContext(),textToSpeechCurrentInfo );
+    }
 
     private void batchProcess(AccessibilityNodeInfo source, Bitmap screenshot) {
         if (source == null) {
@@ -165,7 +181,7 @@ public class UnblindAccessibilityService extends AccessibilityService implements
                 String storedLabel = checkIconCache(buttonImage);
                 if (storedLabel != null) {
                     Log.v(TAG, "Found cached batch icon: " + storedLabel);
-                    //announceTextFromEvent(storedLabel);
+                    //announceTextFromEvent(storedLabel,1);
                 } else if (mBound) {
                     // else if the label hasn't been seen before, notify
                     UnblindDataObject element = new UnblindDataObject(buttonImage, null, true);
@@ -194,7 +210,7 @@ public class UnblindAccessibilityService extends AccessibilityService implements
     }
 
     private void announceTextFromEvent(String text, int mode) {
-        if (!ttsReady) {
+        if (!defaultTextToSpeech.isTtsReady()) {
             Log.d(TAG, "Text-to-speech is not available, attempt to reconnect");
             defaultTextToSpeech = new UnblindTextToSpeech(this);
         } else {
@@ -221,7 +237,7 @@ public class UnblindAccessibilityService extends AccessibilityService implements
             source.recycle();
             return;
         }
-
+        getTTSCurrentInfo();
         announceTextFromEvent(" ", 2);
 
         // From this point, we can assume the source UI element is an image button
@@ -309,7 +325,6 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
 
         defaultTextToSpeech = new UnblindTextToSpeech(this);
-        ttsReady = true;
 
     }
 
