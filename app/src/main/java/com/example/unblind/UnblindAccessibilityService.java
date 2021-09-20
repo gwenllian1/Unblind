@@ -37,7 +37,6 @@ public class UnblindAccessibilityService extends AccessibilityService implements
     private UnblindMediator mediator;
     private UnblindDataObject currentElement = new UnblindDataObject(null, "", true);
     private UnblindTextToSpeech defaultTextToSpeech;
-    private TextToSpeech textToSpeechCurrentInfo;
 
     private final ServiceConnection mConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
@@ -148,22 +147,6 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         Log.v(TAG, "Node has no relevant children nodes");
         return false;
     }
-    private void getTTSCurrentInfo(){
-        textToSpeechCurrentInfo = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
-            @Override
-            public void onInit(int status) {
-                if (status == TextToSpeech.SUCCESS) {
-                    // Setting locale, speech rate and voice pitch
-
-                    // Log.d(TAG, locale.toLanguageTag() + "");
-
-                    textToSpeechCurrentInfo.setLanguage( textToSpeechCurrentInfo.getDefaultVoice().getLocale());
-
-                }
-            }
-        });
-        defaultTextToSpeech.updateTTSConfig(getApplicationContext(),textToSpeechCurrentInfo );
-    }
 
     private void batchProcess(AccessibilityNodeInfo source, Bitmap screenshot) {
         if (source == null) {
@@ -237,7 +220,7 @@ public class UnblindAccessibilityService extends AccessibilityService implements
             source.recycle();
             return;
         }
-        getTTSCurrentInfo();
+        defaultTextToSpeech.updateTTSConfig(getApplicationContext());
         announceTextFromEvent(" ", 2);
 
         // From this point, we can assume the source UI element is an image button

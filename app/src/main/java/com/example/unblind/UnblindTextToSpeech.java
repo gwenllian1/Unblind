@@ -17,16 +17,17 @@ public class UnblindTextToSpeech {
     private static final String TAG = "UnBlind AS";
     private TextToSpeech defaultTextToSpeech;
     private int languageCode = 0;
-    // Global Variables which change from user input?
-    private int speechRate = 100;
-    private int pitch = 100;
-    private Locale locale;
+    private String[] supportedLanguages = {"en", "es","zh"};
     private Translator translator;
 
     public UnblindTextToSpeech(UnblindAccessibilityService unblind) {
         setUpTextToSpeech(unblind);
     }
 
+    /**
+     * This is the initialization function for TTS, which will be called once we start the engine
+     * @param unblind: the actual context for useful information about runtime environment.
+     */
     public void setUpTextToSpeech(UnblindAccessibilityService unblind){
         translator = new Translator(unblind);
 
@@ -34,11 +35,11 @@ public class UnblindTextToSpeech {
             @Override
             public void onInit(int status) {
                 if (status == TextToSpeech.SUCCESS) {
-                    // Setting locale, speech rate and voice pitch
-                   // Log.d(TAG, locale.toLanguageTag() + "");
 
-                    updateTTSConfig(unblind,defaultTextToSpeech);
+                    // set up the TTS config and set the value for ttsReady to be true.
+                    updateTTSConfig(unblind);
                     ttsReady = true;
+                // Error handling for TTS initialization.
                 } else if (status == TextToSpeech.ERROR) {
                     Log.d(TAG,"Error starting Text-to-speech");
                 } else if (status == TextToSpeech.LANG_NOT_SUPPORTED  ) {
@@ -62,32 +63,43 @@ public class UnblindTextToSpeech {
         defaultTextToSpeech.speak(translatedText, queueMode, params, utteranceId);
     }
 
-    public void updateTTSConfig(Context context, TextToSpeech textToSpeech){
+    /**
+     * This function will change all the setting of current text-to-speech to match with the
+     * system configuration for TTS.
+     * @param context: the package that contains all useful information about the current environment.
+     */
+    public void updateTTSConfig(Context context){
+        int speechRate = 100;       // initialize the speech rate to be 100
+        int pitch = 100;            // initialize the pitch to be 100
+
+        // try to fetch the speechrate and pitch setting from Android system.
         try {
             speechRate = Settings.Secure.getInt(context.getContentResolver(), Settings.Secure.TTS_DEFAULT_RATE);
-            Log.d("testt", "The rate is: " + speechRate );
+            Log.d(TAG, "The rate is: " + speechRate );
         } catch (Settings.SettingNotFoundException e) {
             e.printStackTrace();
         }
         try {
             pitch = Settings.Secure.getInt(context.getContentResolver(), Settings.Secure.TTS_DEFAULT_PITCH);
-            Log.d("testt", "The pitch is: " + pitch);
+            Log.d(TAG, "The pitch is: " + pitch);
         } catch (Settings.SettingNotFoundException e) {
             e.printStackTrace();
         }
+        // get the current locale of default TTS.
+        Locale locale = defaultTextToSpeech.getDefaultVoice().getLocale();
 
-        locale = defaultTextToSpeech.getDefaultVoice().getLocale();
-
+        // modifying the current TTS engine with fetched information
         defaultTextToSpeech.setLanguage(locale);
         defaultTextToSpeech.setSpeechRate((float) speechRate /100 );
         defaultTextToSpeech.setPitch((float) pitch /100 );
-        if (locale == Locale.SIMPLIFIED_CHINESE){
-            languageCode = 2;
-        } else if (locale.toLanguageTag().equals("es-ES")){
-            Log.d(TAG,"Set language to Spanish");
-            languageCode = 1;
-        } else {
-            languageCode = 0;
+        Log.d(TAG,locale.toLanguageTag());
+        // Set the dictionary language.
+        languageCode = 0;
+        for(int i = 0; i < supportedLanguages.length;i++ ){
+            if(locale.toLanguageTag().startsWith(supportedLanguages[i])){
+                languageCode = i;
+                break;
+            }
         }
     }
 
@@ -95,6 +107,6 @@ public class UnblindTextToSpeech {
         defaultTextToSpeech.setPitch(1.0f);
         defaultTextToSpeech.setSpeechRate(1.0f);
     }
-    // Play
+
 
 }
