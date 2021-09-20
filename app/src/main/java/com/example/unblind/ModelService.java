@@ -23,7 +23,6 @@ import androidx.core.app.NotificationCompat;
 import com.example.unblind.model.TfliteClassifier;
 
 
-
 public class ModelService extends Service implements ColleagueInterface {
     public static final String TAG = "ModelService";
     private final IBinder binder = new LocalBinder();
@@ -31,53 +30,29 @@ public class ModelService extends Service implements ColleagueInterface {
     UnblindMediator mediator;
     UnblindDataObject currentElement = null;
     boolean dbBound = false;
-
-    TfliteClassifier tfliteClassifier;
-
-    @SuppressLint("StaticFieldLeak")
-    private class GetClassifier extends AsyncTask<String, Integer, TfliteClassifier> {
-
-        @Override
-        protected TfliteClassifier doInBackground(String... strings) {
-            return new TfliteClassifier(getOuter());
-        }
-        @Override
-        protected void onPostExecute(TfliteClassifier result) {
-            Log.e(TAG, "onPostExecute: ");
-            setClassifier(result);
-        }
-
-        public ModelService getOuter() {
-            return ModelService.this;
-        }
-    }
-
-    private void setClassifier(TfliteClassifier tfliteClassifier) {
-        Log.e(TAG, "classifier set");
-        this.tfliteClassifier = tfliteClassifier;
-    }
-
     private final ServiceConnection dbConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
             DatabaseService.LocalBinder binder = (DatabaseService.LocalBinder) service;
             databaseService = binder.getService();
             dbBound = true;
-            Log.e(TAG, "databaseServiceConnected");
+            Log.d(TAG, "databaseServiceConnected");
             // get mediator
-            Log.e(TAG, "bound, getting mediator");
+            Log.d(TAG, "bound, getting mediator");
             mediator = databaseService.getUnblindMediator();
-            mediator.addObserver((ColleagueInterface) getSelf());
+            mediator.addObserver(getSelf());
 
         }
 
         public void onServiceDisconnected(ComponentName className) {
-            Log.e(TAG, "databaseServiceDisconnected");
+            Log.d(TAG, "databaseServiceDisconnected");
             dbBound = false;
         }
     };
+    TfliteClassifier tfliteClassifier;
 
-    public class LocalBinder extends Binder {
-        public ModelService getService() { return ModelService.this; }
+    private void setClassifier(TfliteClassifier tfliteClassifier) {
+        Log.d(TAG, "classifier set");
+        this.tfliteClassifier = tfliteClassifier;
     }
 
     @Override
@@ -94,7 +69,7 @@ public class ModelService extends Service implements ColleagueInterface {
         currentElement = mediator.serveElementFromIncoming();
         runPredication();
         Log.v(TAG, "ModelService is about to processing icon data...");
-        Log.e(TAG, "updating element on model");
+        Log.v(TAG, "updating element on model");
     }
 
     public ModelService getSelf() {
@@ -125,8 +100,7 @@ public class ModelService extends Service implements ColleagueInterface {
         unbindService(dbConnection);
     }
 
-
-    public void runPredication(){
+    public void runPredication() {
         String result = tfliteClassifier.predict(currentElement.iconImage);     // predict the bitmap
         Log.d("Team 3 Model Result", result);
         currentElement = new UnblindDataObject(currentElement.iconImage, result, currentElement.batchStatus);
@@ -148,7 +122,7 @@ public class ModelService extends Service implements ColleagueInterface {
                 new Intent(this, MainActivity.class), 0);
         Intent stopSelf = new Intent(this, ModelService.class);
         stopSelf.setAction(getString(R.string.turn_off));
-        PendingIntent pStopSelf = PendingIntent.getService(this, 0, stopSelf,PendingIntent.FLAG_CANCEL_CURRENT);
+        PendingIntent pStopSelf = PendingIntent.getService(this, 0, stopSelf, PendingIntent.FLAG_CANCEL_CURRENT);
 
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         String channelId = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ? createNotificationChannel(notificationManager) : "";
@@ -168,7 +142,7 @@ public class ModelService extends Service implements ColleagueInterface {
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    private String createNotificationChannel(NotificationManager notificationManager){
+    private String createNotificationChannel(NotificationManager notificationManager) {
         String channelId = "exampleChannel";
         String channelName = "Example Channel";
         NotificationChannel channel = new NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_HIGH);
@@ -177,6 +151,31 @@ public class ModelService extends Service implements ColleagueInterface {
         channel.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
         notificationManager.createNotificationChannel(channel);
         return channelId;
+    }
+
+    @SuppressLint("StaticFieldLeak")
+    private class GetClassifier extends AsyncTask<String, Integer, TfliteClassifier> {
+
+        @Override
+        protected TfliteClassifier doInBackground(String... strings) {
+            return new TfliteClassifier(getOuter());
+        }
+
+        @Override
+        protected void onPostExecute(TfliteClassifier result) {
+            Log.d(TAG, "onPostExecute: ");
+            setClassifier(result);
+        }
+
+        public ModelService getOuter() {
+            return ModelService.this;
+        }
+    }
+
+    public class LocalBinder extends Binder {
+        public ModelService getService() {
+            return ModelService.this;
+        }
     }
 
 }
