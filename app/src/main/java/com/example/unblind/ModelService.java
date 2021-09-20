@@ -120,6 +120,11 @@ public class ModelService extends Service implements ColleagueInterface {
         startNotification();
     }
 
+    @Override
+    public void onDestroy() {
+        unbindService(dbConnection);
+    }
+
 
     public void runPredication(){
         String result = tfliteClassifier.predict(currentElement.iconImage);     // predict the bitmap

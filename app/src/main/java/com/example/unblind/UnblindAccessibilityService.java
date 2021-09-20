@@ -343,6 +343,12 @@ public class UnblindAccessibilityService extends AccessibilityService implements
     }
 
     @Override
+    public void onDestroy() {
+        unbindService(modelConnection);
+        unbindService(dbConnection);
+    }
+
+    @Override
     public void update() {
         // Update mediator if the out queue is not empty AND the outgoing element is not the same as the current element?
         Log.v(TAG, "Update");
