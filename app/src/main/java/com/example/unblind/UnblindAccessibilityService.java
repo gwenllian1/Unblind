@@ -23,6 +23,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 
 import java.util.Locale;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -37,6 +39,7 @@ public class UnblindAccessibilityService extends AccessibilityService implements
     private boolean dbBound = false;
     private boolean modelBound = false;
     private boolean batchBound = false;
+    ExecutorService executorService = Executors.newSingleThreadExecutor();
     private final ServiceConnection modelConnection = new ServiceConnection() {
 
         @Override
@@ -198,12 +201,15 @@ public class UnblindAccessibilityService extends AccessibilityService implements
                     Log.v(TAG, "Found cached batch icon: " + storedLabel);
                     //announceTextFromEvent(storedLabel);
                 } else if (dbBound) {
-                    // else if the label hasn't been seen before, notify
-                    UnblindDataObject element = new UnblindDataObject(buttonImage, null, true);
-                    Log.v(TAG, "batchProcess pushing element to incoming queue : " + element);
-                    mediator.pushElementToIncomingBatchQueue(element);
-                    Log.v(TAG, "batchProcess finished pushing element to incoming queue : " + element);
-                    mediator.notifyObservers();
+                    executorService.execute(() -> {
+                        // else if the label hasn't been seen before, notify
+                        UnblindDataObject element = new UnblindDataObject(buttonImage, null, true);
+                        Log.v(TAG, "batchProcess pushing element to incoming queue : " + element);
+                        mediator.pushElementToIncomingBatchQueue(element);
+                        Log.v(TAG, "batchProcess finished pushing element to incoming queue : " + element);
+                        mediator.notifyObservers();
+                    });
+
                 }
             }
         }
