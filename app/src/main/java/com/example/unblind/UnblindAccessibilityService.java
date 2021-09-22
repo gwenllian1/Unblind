@@ -76,13 +76,13 @@ public class UnblindAccessibilityService extends AccessibilityService implements
             databaseService = binder.getService();
             dbBound = true;
             setMediator(databaseService.getUnblindMediator());
-            Log.e(TAG, "databaseServiceConnected");
+            Log.d(TAG, "databaseServiceConnected");
 
         }
 
 
         public void onServiceDisconnected(ComponentName className) {
-            Log.e(TAG, "databaseServiceDisconnected");
+            Log.d(TAG, "databaseServiceDisconnected");
             dbBound = false;
         }
     };
@@ -279,7 +279,7 @@ public class UnblindAccessibilityService extends AccessibilityService implements
                     // else if the label hasn't been seen before, notify
                     if (ttsReady)
                         tts.speak("Processing labels", 2, null, null);
-                    Log.e(TAG, "setting on mediator");
+                    Log.d(TAG, "setting on mediator");
                     mediator.pushElementToIncomingImmediateQueue(new UnblindDataObject(buttonImage, "", false));
                     currentElement = mediator.getElementFromIncomingImmediateQueue();
                     // TODO:test if this if condition is needed
@@ -366,6 +366,13 @@ public class UnblindAccessibilityService extends AccessibilityService implements
     }
 
     @Override
+    public void onDestroy() {
+        unbindService(modelConnection);
+        unbindService(batchConnection);
+        unbindService(dbConnection);
+    }
+
+    @Override
     public void update() {
         // Update mediator if the out queue is not empty AND the outgoing element is not the same as the current element?
         Log.v(TAG, "Update");
@@ -381,14 +388,14 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         System.out.println(currentElement);
         System.out.println(mediator.getElementFromOutgoingImmediateQueue());
         currentElement = mediator.serveElementFromOutgoingImmediateQueue();
-        Log.e(TAG, "updating on accessibility element");
+        Log.d(TAG, "updating on accessibility element");
 
         if (currentElement.batchStatus) {
             Log.v(TAG, "Received generated batch label: " + currentElement.iconLabel);
             Log.v(TAG, "Not speaking batch label...");
             return;
         }
-        Log.e(TAG, currentElement.iconLabel);
+        Log.d(TAG, currentElement.iconLabel);
         // currentElement is now complete, can be sent to TalkBack
         announceTextFromEvent(currentElement.iconLabel);
         // if the in queue is not empty, notify observers

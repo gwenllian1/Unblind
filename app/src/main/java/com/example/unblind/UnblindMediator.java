@@ -5,8 +5,8 @@ import android.util.Log;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayDeque;
-import java.util.Queue;
 import java.util.ArrayList;
+import java.util.Queue;
 
 public class UnblindMediator {
     private ArrayList<ColleagueInterface> observers;
@@ -27,16 +27,16 @@ public class UnblindMediator {
     }
 
     public void addObserver(ColleagueInterface observer){
-        Log.e(TAG, "adding observer");
+        Log.d(TAG, "adding observer");
         observers.add(observer);
     }
 
-    public void removeObserver(ColleagueInterface observer){
-        Log.e(TAG, "removing observer");
+    public void removeObserver(ColleagueInterface observer) {
+        Log.d(TAG, "removing observer");
         observers.remove(observer);
     }
 
-    public void notifyObservers(){
+    public void notifyObservers() {
         for (ColleagueInterface observer : observers) {
             observer.update();
         }
@@ -61,7 +61,7 @@ public class UnblindMediator {
 
     public void pushElementToIncomingImmediateQueue(UnblindDataObject element){
         incomingImmediateQueue.add(element);
-        Log.e(TAG, "adding incoming element");
+        Log.d(TAG, "adding incoming element");
     }
 
     public UnblindDataObject getElementFromIncomingImmediateQueue(){
@@ -82,7 +82,7 @@ public class UnblindMediator {
 
     public void pushElementToIncomingBatchQueue(UnblindDataObject element){
         incomingBatchQueue.add(element);
-        Log.e(TAG, "adding incoming element");
+        Log.d(TAG, "adding incoming element");
     }
 
     public UnblindDataObject getElementFromIncomingBatchQueue(){
@@ -95,7 +95,7 @@ public class UnblindMediator {
 
     public void pushElementToOutgoingImmediateQueue(UnblindDataObject element){
         outgoingQueue.add(element);
-        Log.e(TAG, "adding outgoing element");
+        Log.d(TAG, "adding outgoing element");
     }
 
     public UnblindDataObject getElementFromOutgoingImmediateQueue(){

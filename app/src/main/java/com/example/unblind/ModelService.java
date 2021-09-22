@@ -23,7 +23,6 @@ import androidx.core.app.NotificationCompat;
 import com.example.unblind.model.TfliteClassifier;
 
 
-
 public class ModelService extends Service implements ColleagueInterface {
     public static final String TAG = "ModelService";
     private final IBinder binder = new LocalBinder();
@@ -63,16 +62,16 @@ public class ModelService extends Service implements ColleagueInterface {
             DatabaseService.LocalBinder binder = (DatabaseService.LocalBinder) service;
             databaseService = binder.getService();
             dbBound = true;
-            Log.e(TAG, "databaseServiceConnected");
+            Log.d(TAG, "databaseServiceConnected");
             // get mediator
-            Log.e(TAG, "bound, getting mediator");
+            Log.d(TAG, "bound, getting mediator");
             mediator = databaseService.getUnblindMediator();
             batch = mediator.checkModelServiceObserver();
             mediator.addObserver((ColleagueInterface) getSelf());
         }
 
         public void onServiceDisconnected(ComponentName className) {
-            Log.e(TAG, "databaseServiceDisconnected");
+            Log.d(TAG, "databaseServiceDisconnected");
             dbBound = false;
         }
     };
@@ -135,8 +134,12 @@ public class ModelService extends Service implements ColleagueInterface {
         startNotification();
     }
 
+    @Override
+    public void onDestroy() {
+        unbindService(dbConnection);
+    }
 
-    public void runPredication(){
+    public void runPredication() {
         String result = tfliteClassifier.predict(currentElement.iconImage);     // predict the bitmap
         Log.d("Team 3 Model Result", result);
         currentElement = new UnblindDataObject(currentElement.iconImage, result, currentElement.batchStatus);
@@ -162,7 +165,7 @@ public class ModelService extends Service implements ColleagueInterface {
                 new Intent(this, MainActivity.class), 0);
         Intent stopSelf = new Intent(this, ModelService.class);
         stopSelf.setAction(getString(R.string.turn_off));
-        PendingIntent pStopSelf = PendingIntent.getService(this, 0, stopSelf,PendingIntent.FLAG_CANCEL_CURRENT);
+        PendingIntent pStopSelf = PendingIntent.getService(this, 0, stopSelf, PendingIntent.FLAG_CANCEL_CURRENT);
 
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         String channelId = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ? createNotificationChannel(notificationManager) : "";
@@ -182,7 +185,7 @@ public class ModelService extends Service implements ColleagueInterface {
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    private String createNotificationChannel(NotificationManager notificationManager){
+    private String createNotificationChannel(NotificationManager notificationManager) {
         String channelId = "exampleChannel";
         String channelName = "Example Channel";
         NotificationChannel channel = new NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_HIGH);
