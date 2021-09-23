@@ -1,5 +1,6 @@
 package com.example.unblind;
 
+import android.accessibilityservice.AccessibilityGestureEvent;
 import android.accessibilityservice.AccessibilityService;
 import android.accessibilityservice.AccessibilityServiceInfo;
 import android.content.ComponentName;
@@ -350,5 +351,19 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         if (!mediator.checkIncomingEmpty()) {
             mediator.notifyObservers();
         }
+    }
+
+    @Override
+    public boolean onGesture(int gestureId) {
+        if (gestureId == GESTURE_SWIPE_LEFT_AND_DOWN) {
+            Log.v(TAG, "Gesture detected.");
+
+            if (manager.isEnabled()) {  // If Accessibility service is enabled, pause service
+                Log.v(TAG, "Ended service with gesture");
+                disableSelf();
+            }
+            return true;
+        }
+        return false;
     }
 }
