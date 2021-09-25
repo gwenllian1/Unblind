@@ -220,6 +220,7 @@ public class UnblindAccessibilityService extends AccessibilityService implements
             source.recycle();
             return;
         }
+
         defaultTextToSpeech.updateTTSConfig(getApplicationContext());
         announceTextFromEvent(" ", 2);
 
@@ -249,6 +250,10 @@ public class UnblindAccessibilityService extends AccessibilityService implements
                     Log.e(TAG, "setting on mediator");
                     mediator.pushElementToIncoming(new UnblindDataObject(buttonImage, "", false));
                     currentElement = mediator.getElementFromIncoming();
+                    // Current Element has action upon clicking
+                    if(source.isClickable() || source.isLongClickable()){
+                        currentElement.setIsClickableTrue();
+                    }
                     if (!mediator.checkIncomingSizeMoreThanOne()) {
                         mediator.notifyObservers();
                     }
@@ -337,7 +342,10 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         Log.e(TAG, currentElement.iconLabel);
         // currentElement is now complete, can be sent to TalkBack
         announceTextFromEvent(currentElement.iconLabel, 1);
-        announceTextFromEvent("Double Tap to activate", 1);
+        if(currentElement.getIsClickable()){
+            announceTextFromEvent("Double Tap to activate", 1);
+        }
+        currentElement.setIsClickableFalse();
         // if the in queue is not empty, notify observers
         if (!mediator.checkIncomingEmpty()) {
             mediator.notifyObservers();
