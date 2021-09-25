@@ -41,6 +41,7 @@
 
     <!-- For use in UI -->
     <string name="service_button">Button</string>
+    <string name="ttsOptions_button">ttsOptions</string>
 
 
     <!-- Messages Preferences -->
@@ -50,11 +51,10 @@
     <!-- Sync Preferences -->
     <string name="sync_title">Sync email periodically</string>
     <string name="attachment_title">Download incoming attachments</string>
-    <string name="activate_notification_summary_on">Notifications turned on</string>
-    <string name="activate_notification_summary_off">Turn on notifications</string>
+    <string name="activate_notification_summary">Click to Re-activate Unblind notification</string>
     <string name="activate_screen_summary_on">Screen Reader turned on</string>
     <string name="activate_screen_summary_off">Turn on Screen Reader</string>
-    <string name="example_service_running">Unblind service is running</string>
+    <string name="example_service_running">Unblind service: Click to open Accessibility Settings</string>
     <string name="example_service_label">Unblind Service</string>
     <string name="example_service_stopped">Example service has stopped.</string>
     <string name="example_service_connected">Example service is connected.</string>
@@ -64,7 +64,10 @@
     <string name="accessibility_service_label">Unblind</string>
     <string name="accessibility_service_description">Provides machine learning generated alt-text to unlabelled UI icons to be read by screen readers.</string>
     <string name="turn_off">Remove Notification</string>
+    <string name="redir_app">Open Unblind App</string>
     <string name="service_status_off">Service Status: OFF</string>
     <string name="service_status_on">Service Status: ON</string>
     <string name="go_to_settings">Click to go to Accessibility Settings</string>
+    <string name="go_to_ttsSettings">Click to go to Text to Speech Settings</string>
+
 </resources>
