@@ -345,7 +345,7 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         if(currentElement.getIsClickable()){
             announceTextFromEvent("Double Tap to activate", 1);
         }
-        currentElement.setIsClickableFalse();
+
         // if the in queue is not empty, notify observers
         if (!mediator.checkIncomingEmpty()) {
             mediator.notifyObservers();
