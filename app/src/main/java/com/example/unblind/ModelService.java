@@ -12,8 +12,7 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.AsyncTask;
 import android.os.Binder;
-import android.os.Buil
-d;
+import android.os.Build;
 import android.os.IBinder;
 import android.provider.Settings;
 import android.util.Log;
@@ -137,6 +136,15 @@ public class ModelService extends Service implements ColleagueInterface {
     }
 
     @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        super.onStartCommand(intent, flags, startId);
+        if (intent.getAction() != null && intent.getAction().equals(getString(R.string.turn_off))) {
+            stopForeground(true);
+        }
+        return START_NOT_STICKY;
+    }
+
+        @Override
     public void onDestroy() {
         unbindService(dbConnection);
     }

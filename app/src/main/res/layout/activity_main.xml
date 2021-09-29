@@ -28,7 +28,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
                 android:background="?attr/colorPrimaryVariant"
-                android:contentDescription="Search Settings"
+                android:contentDescription="Top Bar"
                 android:elevation="0dp"
                 app:layout_collapseMode="pin"
                 app:layout_scrollFlags="scroll|enterAlways|snap"
@@ -58,14 +58,5 @@
 
 
     </androidx.core.widget.NestedScrollView>
-
-        <TextView
-            android:id="@+id/textView2"
-            android:layout_width="163dp"
-            android:layout_height="65dp"
-            android:text="@string/service_status_off"
-            android:textSize="24sp"
-            android:visibility="visible"
-            app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
