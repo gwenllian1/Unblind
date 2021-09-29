@@ -32,7 +32,6 @@
                 android:elevation="0dp"
                 app:layout_collapseMode="pin"
                 app:layout_scrollFlags="scroll|enterAlways|snap"
-                app:navigationIcon="@drawable/ic_baseline_search_24"
                 app:title="@string/app_name" />
 
         </com.google.android.material.appbar.CollapsingToolbarLayout>

@@ -1,5 +1,6 @@
 package com.example.unblind;
 
+import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -9,42 +10,41 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.graphics.Bitmap;
 import android.os.AsyncTask;
-import android.os.Build;
+import android.os.Binder;
+import android.os.Buil
+d;
 import android.os.IBinder;
 import android.provider.Settings;
 import android.util.Log;
-import android.util.Pair;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
-import androidx.work.WorkManager;
 
-import com.example.unblind.model.Classifier;
-import com.example.unblind.model.Utils;
+import com.example.unblind.model.TfliteClassifier;
+
 
 public class ModelService extends Service implements ColleagueInterface {
     public static final String TAG = "ModelService";
-    DatabaseService mService;
+    private final IBinder binder = new LocalBinder();
+    DatabaseService databaseService;
     UnblindMediator mediator;
-    WorkManager mWorkManager;
-    Pair<Bitmap, String> currentElement = new Pair<Bitmap, String>(null, "");
-    boolean mBound = false;
-    static final String MODEL_NAME = "labeldroid.pt";
+    UnblindDataObject currentElement = null;
+    boolean dbBound = false;
+    boolean batch = false;
 
-    Classifier classifier;
+    TfliteClassifier tfliteClassifier;
 
-    private class GetClassifier extends AsyncTask<String, Integer, Classifier> {
+    @SuppressLint("StaticFieldLeak")
+    private class GetClassifier extends AsyncTask<String, Integer, TfliteClassifier> {
 
         @Override
-        protected Classifier doInBackground(String... strings) {
-            String absolutePath = Utils.assetFilePath(getOuter(), strings[0]); //get absolute path
-            return new Classifier(absolutePath);
+        protected TfliteClassifier doInBackground(String... strings) {
+            return new TfliteClassifier(getOuter());
         }
-            @Override
-        protected void onPostExecute(Classifier result) {
+        @Override
+        protected void onPostExecute(TfliteClassifier result) {
             Log.e(TAG, "onPostExecute: ");
             setClassifier(result);
         }
@@ -54,36 +54,63 @@ public class ModelService extends Service implements ColleagueInterface {
         }
     }
 
-    private void setClassifier(Classifier classifier) {
+    private void setClassifier(TfliteClassifier tfliteClassifier) {
         Log.e(TAG, "classifier set");
-        this.classifier = classifier;
+        this.tfliteClassifier = tfliteClassifier;
     }
 
-    private final ServiceConnection mConnection = new ServiceConnection() {
+    private final ServiceConnection dbConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
             DatabaseService.LocalBinder binder = (DatabaseService.LocalBinder) service;
-            mService = binder.getService();
-            mBound = true;
-            Log.e(TAG, "databaseServiceConnected");
+            databaseService = binder.getService();
+            dbBound = true;
+            Log.d(TAG, "databaseServiceConnected");
             // get mediator
-            Log.e(TAG, "bound, getting mediator");
-            mediator = mService.getUnblindMediator();
+            Log.d(TAG, "bound, getting mediator");
+            mediator = databaseService.getUnblindMediator();
+            batch = mediator.checkModelServiceObserver();
             mediator.addObserver((ColleagueInterface) getSelf());
         }
 
         public void onServiceDisconnected(ComponentName className) {
-            Log.e(TAG, "databaseServiceDisconnected");
-            mBound = false;
+            Log.d(TAG, "databaseServiceDisconnected");
+            dbBound = false;
         }
     };
 
+    public class LocalBinder extends Binder {
+        public ModelService getService() { return ModelService.this; }
+    }
+
     @Override
     public void update() {
-        if ((!mediator.checkIncomingEmpty()) && (currentElement.first != mediator.getElementFromIncoming().first)){
-            currentElement = mediator.serveElementFromIncoming();
-            runPredication();
+        if (batch) {
+            if (mediator.checkIncomingBatchQueueEmpty()) {
+                return;
+            }
+            if (currentElement != null) {
+                Log.v(TAG, "ModelService is deferring processing...");
+                // When the current image has been processed,
+                // it will set currentElement to null and call this update method
+                return;
+            }
+            currentElement = mediator.serveElementFromIncomingBatchQueue();
+            Log.v(TAG, "BatchService is running prediction");
         }
-        Log.e(TAG, "updating element on model");
+        else {
+            if (mediator.checkIncomingImmediateQueueEmpty()) {
+                return;
+            }
+            if (currentElement != null) {
+                Log.v(TAG, "ModelService is deferring processing...");
+                // When the current image has been processed,
+                // it will set currentElement to null and call this update method
+                return;
+            }
+            currentElement = mediator.serveElementFromIncomingImmediateQueue();
+            Log.v(TAG, "ModelService is running prediction");
+        }
+        runPredication();
     }
 
     public ModelService getSelf() {
@@ -93,50 +120,43 @@ public class ModelService extends Service implements ColleagueInterface {
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
-        return null;
+        return binder;
     }
 
     @Override
     public void onCreate() {
         super.onCreate();
+
+        // execute classifier
+        new GetClassifier().execute();
+
+        // bind to DatabaseService
+        Intent newIntent = new Intent(this, DatabaseService.class);
+        bindService(newIntent, dbConnection, Context.BIND_AUTO_CREATE);
         startNotification();
     }
 
     @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.e(TAG, "Model service started");
-        super.onStartCommand(intent, flags, startId);
-        new GetClassifier().execute(MODEL_NAME);
-        // bind to DatabaseService
-        Intent newIntent = new Intent(this, DatabaseService.class);
-        startService(newIntent);
-        bindService(newIntent, mConnection, Context.BIND_AUTO_CREATE);
-        if(intent.getAction() != null && intent.getAction().equals(getString(R.string.turn_off))) {
-            stopForeground(true);
-        }
-        return START_NOT_STICKY;
+    public void onDestroy() {
+        unbindService(dbConnection);
     }
 
-
-    // Client methods go here
-    public void loadClassifier(){
-        // use the function provided by Utils class
-        String absolutePath = Utils.assetFilePath(this, "labeldroid.pt"); //get absolute path
-        classifier = new Classifier(absolutePath);
-    }
-
-
-    public void runPredication(){
-        String result = classifier.predict(currentElement.first);     // predict the bitmap
+    public void runPredication() {
+        String result = tfliteClassifier.predict(currentElement.iconImage);     // predict the bitmap
         Log.d("Team 3 Model Result", result);
-        currentElement = new Pair<Bitmap, String>(currentElement.first, result);
+        currentElement = new UnblindDataObject(currentElement.iconImage, result, currentElement.batchStatus);
 
         // store classified pair into cache
         Log.v(TAG, "setting in SP");
-        byte[] base64EncodedBitmap = UnblindMediator.bitmapToBytes(currentElement.first);
-        mService.setSharedData(UnblindMediator.TAG, base64EncodedBitmap, result);
+        byte[] base64EncodedBitmap = UnblindMediator.bitmapToBytes(currentElement.iconImage);
+        databaseService.setSharedData(UnblindMediator.TAG, base64EncodedBitmap, result);
 
-        mediator.pushElementToOutgoing(currentElement);
+        // only push element to mediator if immediate processing
+        if (!batch) {
+            mediator.pushElementToOutgoingImmediateQueue(currentElement);
+        }
+
+        currentElement = null;
         mediator.notifyObservers();
     }
 
@@ -150,7 +170,7 @@ public class ModelService extends Service implements ColleagueInterface {
         // Setting up remove notification action
         Intent stopSelf = new Intent(this, ModelService.class);
         stopSelf.setAction(getString(R.string.turn_off));
-        PendingIntent pStopSelf = PendingIntent.getService(this, 0, stopSelf,PendingIntent.FLAG_CANCEL_CURRENT);
+        PendingIntent pStopSelf = PendingIntent.getService(this, 0, stopSelf, PendingIntent.FLAG_CANCEL_CURRENT);
 
         // Setting up redirect to Unblind app click action
         Intent redirectToApp = new Intent(this, MainActivity.class);
@@ -178,7 +198,7 @@ public class ModelService extends Service implements ColleagueInterface {
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    private String createNotificationChannel(NotificationManager notificationManager){
+    private String createNotificationChannel(NotificationManager notificationManager) {
         String channelId = "exampleChannel";
         String channelName = "Example Channel";
         NotificationChannel channel = new NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_HIGH);

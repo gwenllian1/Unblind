@@ -1,21 +1,18 @@
 package com.example.unblind;
 
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.util.Base64;
 import android.util.Log;
-import android.util.Pair;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayDeque;
-import java.util.Queue;
 import java.util.ArrayList;
+import java.util.Queue;
 
 public class UnblindMediator {
     private ArrayList<ColleagueInterface> observers;
-    private Queue<Pair<Bitmap, String>> IncomingQueue = new ArrayDeque<>();
-    private Queue<Pair<Bitmap, String>> OutgoingQueue = new ArrayDeque<>();
-//    private Pair<Bitmap, String> currentElement = new Pair(null, null);
+    private Queue<UnblindDataObject> incomingImmediateQueue = new ArrayDeque<>();
+    private Queue<UnblindDataObject> incomingBatchQueue = new ArrayDeque<>();
+    private Queue<UnblindDataObject> outgoingQueue = new ArrayDeque<>();
     public static final String TAG = "UnblindMediator";
 
     public static byte[] bitmapToBytes(Bitmap bitmap) {
@@ -25,67 +22,90 @@ public class UnblindMediator {
         return byteArrayOutputStream.toByteArray();
     }
 
-//    public static Bitmap stringToBitmap(String string) {
-//        byte[] decodedString = Base64.decode(string, Base64.DEFAULT);
-//        return BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
-//    }
-
     public UnblindMediator() {
         this.observers = new ArrayList<ColleagueInterface>();
     }
 
     public void addObserver(ColleagueInterface observer){
-        Log.e(TAG, "adding observer");
+        Log.d(TAG, "adding observer");
         observers.add(observer);
     }
 
-    public void removeObserver(ColleagueInterface observer){
-        Log.e(TAG, "removing observer");
+    public void removeObserver(ColleagueInterface observer) {
+        Log.d(TAG, "removing observer");
         observers.remove(observer);
     }
 
-    public void notifyObservers(){
+    public void notifyObservers() {
         for (ColleagueInterface observer : observers) {
             observer.update();
         }
     }
 
-    public boolean checkIncomingEmpty(){
-        return IncomingQueue.isEmpty();
+    public boolean checkModelServiceObserver() {
+        for (ColleagueInterface observer : observers) {
+            if (observer.getClass() == ModelService.class) {
+                return true;
+            }
+        }
+        return false;
     }
 
-    public boolean checkOutgoingEmpty() { return OutgoingQueue.isEmpty(); }
-
-    public boolean checkIncomingSizeMoreThanOne(){
-        return (IncomingQueue.size() > 1);
+    public boolean checkIncomingImmediateQueueEmpty(){
+        return incomingImmediateQueue.isEmpty();
     }
 
-    public void pushElementToIncoming(Pair<Bitmap, String> element){
-        IncomingQueue.add(element);
-        Log.e(TAG, "setting element");
+    public boolean checkIncomingImmediateQueueSizeMoreThanOne(){
+        return (incomingImmediateQueue.size() > 1);
     }
 
-    public Pair<Bitmap, String> getElementFromIncoming(){
-        return IncomingQueue.peek();
+    public void pushElementToIncomingImmediateQueue(UnblindDataObject element){
+        incomingImmediateQueue.add(element);
+        Log.d(TAG, "adding incoming element");
     }
 
-    public Pair<Bitmap, String> serveElementFromIncoming(){
-        return IncomingQueue.remove();
+    public UnblindDataObject getElementFromIncomingImmediateQueue(){
+        return incomingImmediateQueue.peek();
     }
 
-    public void pushElementToOutgoing(Pair<Bitmap, String> element){
-        OutgoingQueue.add(element);
-        Log.e(TAG, "setting element");
+    public UnblindDataObject serveElementFromIncomingImmediateQueue(){
+        return incomingImmediateQueue.remove();
     }
 
-    public Pair<Bitmap, String> getElementFromOutgoing(){
-        return OutgoingQueue.peek();
+    public boolean checkIncomingBatchQueueEmpty(){
+        return incomingBatchQueue.isEmpty();
     }
 
-    public Pair<Bitmap, String> serveElementFromOutgoing(){
-        return OutgoingQueue.remove();
+    public boolean checkIncomingBatchQueueSizeMoreThanOne(){
+        return (incomingBatchQueue.size() > 1);
     }
 
+    public void pushElementToIncomingBatchQueue(UnblindDataObject element){
+        incomingBatchQueue.add(element);
+        Log.d(TAG, "adding incoming element");
+    }
 
+    public UnblindDataObject getElementFromIncomingBatchQueue(){
+        return incomingBatchQueue.peek();
+    }
+
+    public UnblindDataObject serveElementFromIncomingBatchQueue(){
+        return incomingBatchQueue.remove();
+    }
+
+    public void pushElementToOutgoingImmediateQueue(UnblindDataObject element){
+        outgoingQueue.add(element);
+        Log.d(TAG, "adding outgoing element");
+    }
+
+    public UnblindDataObject getElementFromOutgoingImmediateQueue(){
+        return outgoingQueue.peek();
+    }
+
+    public UnblindDataObject serveElementFromOutgoingImmediateQueue(){
+        return outgoingQueue.remove();
+    }
+
+    public boolean checkOutgoingImmediateQueueEmpty() { return outgoingQueue.isEmpty(); }
 
 }

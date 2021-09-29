@@ -6,16 +6,14 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.ColorSpace;
 import android.graphics.Rect;
 import android.hardware.HardwareBuffer;
 import android.os.Build;
 import android.os.IBinder;
-import android.util.Base64;
+import android.speech.tts.TextToSpeech;
 import android.util.Log;
-import android.util.Pair;
 import android.view.Display;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityManager;
@@ -24,7 +22,9 @@ import android.view.accessibility.AccessibilityNodeInfo;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 
-import java.io.ByteArrayOutputStream;
+import java.util.Locale;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -32,31 +32,107 @@ import java.util.concurrent.TimeUnit;
 public class UnblindAccessibilityService extends AccessibilityService implements ColleagueInterface {
     private static final String TAG = "UnBlind AS";
     private final ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(10, 10, 15, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
-    DatabaseService mService;
+    DatabaseService databaseService;
+    ModelService modelService;
+    ModelService batchService;
     private AccessibilityManager manager;
-    private boolean mBound = false;
+    private boolean dbBound = false;
+    private boolean modelBound = false;
+    private boolean batchBound = false;
+    ExecutorService executorService = Executors.newSingleThreadExecutor();
+    private final ServiceConnection modelConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            ModelService.LocalBinder binder = (ModelService.LocalBinder) service;
+            modelService = binder.getService();
+            modelBound = true;
+            Log.d(TAG, "modelServiceConnected");
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            Log.d(TAG, "modelServiceDisconnected");
+            modelBound = false;
+        }
+    };
+    private final ServiceConnection batchConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            ModelService.LocalBinder binder = (ModelService.LocalBinder) service;
+            batchService = binder.getService();
+            batchBound = true;
+            Log.d(TAG, "batchServiceConnected");
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            Log.d(TAG, "batchServiceDisconnected");
+            batchBound = false;
+        }
+    };
     private UnblindMediator mediator;
-    private final ServiceConnection mConnection = new ServiceConnection() {
+    private final ServiceConnection dbConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
             DatabaseService.LocalBinder binder = (DatabaseService.LocalBinder) service;
-            mService = binder.getService();
-            mBound = true;
-            setMediator(mService.getUnblindMediator());
-            Log.e(TAG, "databaseServiceConnected");
+            databaseService = binder.getService();
+            dbBound = true;
+            setMediator(databaseService.getUnblindMediator());
+            Log.d(TAG, "databaseServiceConnected");
 
         }
 
 
         public void onServiceDisconnected(ComponentName className) {
-            Log.e(TAG, "databaseServiceDisconnected");
-            mBound = false;
+            Log.d(TAG, "databaseServiceDisconnected");
+            dbBound = false;
         }
     };
-    private Pair<Bitmap, String> currentElement = new Pair(null, "");
+    private UnblindDataObject currentElement = new UnblindDataObject(null, "", true);
+    private TextToSpeech tts;
+    private boolean ttsReady = false;
 
     private void setMediator(UnblindMediator mediator) {
         this.mediator = mediator;
         mediator.addObserver(this);
+    }
+
+    private boolean shouldIgnoreNode(AccessibilityNodeInfo source) {
+        // Helper method to limit focus to only the specified classes
+
+        String currentNodeClassName = (String) source.getClassName();
+        boolean ignoreNode = true;
+        if (currentNodeClassName != null) {
+            if (currentNodeClassName.equals("android.widget.ImageButton")) {
+                ignoreNode = false;
+            }
+            if (currentNodeClassName.equals("android.widget.ImageView")) {
+                ignoreNode = false;
+            }
+            if (currentNodeClassName.equals("android.widget.FrameLayout")) {
+                ignoreNode = false;
+            }
+        }
+        return ignoreNode;
+    }
+
+    private boolean nodeHasDescription(AccessibilityNodeInfo source) {
+        if (source == null) {
+            return false;
+        }
+        boolean ret = false;
+        if (source.getText() != null) {
+            Log.v(TAG, "Node getText: " + source.getText());
+            ret = true;
+        }
+        if (source.getContentDescription() != null) {
+            Log.v(TAG, "Node getContentDescription: " + source.getContentDescription());
+            ret = true;
+        }
+        if (ret)
+            Log.v(TAG, "Existing description found for node");
+        return ret;
     }
 
     private Bitmap getButtonImageFromScreenshot(AccessibilityNodeInfo buttonNode, Bitmap screenShotBM) {
@@ -75,25 +151,90 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         return buttonBitmap;
     }
 
-    private String bitmapToString(Bitmap bitmap) {
-        // Get a Base64 encoded PNG of the button bitmap
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream);
-        byte[] byteArray = byteArrayOutputStream.toByteArray();
-        return Base64.encodeToString(byteArray, Base64.DEFAULT);
+    private AccessibilityNodeInfo getHighestParent(AccessibilityNodeInfo source) {
+        Log.v(TAG, "Finding highest parent of initial node in batchProcess");
+        AccessibilityNodeInfo tempNode = source.getParent();
+        AccessibilityNodeInfo returnNode = source;
+        while (tempNode != null) {
+            Log.v(TAG, "Still finding highest parent of initial node in batchProcess...");
+            returnNode = tempNode;
+            tempNode = returnNode.getParent();
+        }
+        return returnNode;
+    }
+
+    private boolean nodeHasRelevantChildren(AccessibilityNodeInfo node) {
+        if (node == null) {
+            return false;
+        }
+
+        if (!shouldIgnoreNode(node) && !nodeHasDescription(node)) {
+            Log.v(TAG, "Node is a relevant type and has no description");
+            return true;
+        }
+        for (int i = 0; i < node.getChildCount(); i++) {
+            boolean temp = nodeHasRelevantChildren(node.getChild(i));
+            if (temp) {
+                Log.v(TAG, "Node has at least one relevant, unlabelled child node");
+                return true;
+            }
+        }
+        Log.v(TAG, "Node has no relevant children nodes");
+        return false;
+    }
+
+    private void batchProcess(AccessibilityNodeInfo source, Bitmap screenshot) {
+        if (source == null) {
+            return;
+        }
+
+        Log.v(TAG, "batchProcess - childCount = " + source.getChildCount());
+        if (!shouldIgnoreNode(source)) {
+            // To avoid unnecessary usage of the model, below check should be enabled when not testing
+            if (nodeHasDescription(source) == false) {
+                Log.v(TAG, "Getting bitmap for node in batch");
+                Bitmap buttonImage = getButtonImageFromScreenshot(source, screenshot).copy(Bitmap.Config.ARGB_8888, true);
+
+                // Disable cache lookup for now
+                String storedLabel = checkIconCache(buttonImage);
+                if (storedLabel != null) {
+                    Log.v(TAG, "Found cached batch icon: " + storedLabel);
+                    //announceTextFromEvent(storedLabel);
+                } else if (dbBound) {
+                    executorService.execute(() -> {
+                        // else if the label hasn't been seen before, notify
+                        UnblindDataObject element = new UnblindDataObject(buttonImage, null, true);
+                        Log.v(TAG, "batchProcess pushing element to incoming queue : " + element);
+                        mediator.pushElementToIncomingBatchQueue(element);
+                        Log.v(TAG, "batchProcess finished pushing element to incoming queue : " + element);
+                        mediator.notifyObservers();
+                    });
+
+                }
+            }
+        }
+
+        for (int i = 0; i < source.getChildCount(); i++) {
+            batchProcess(source.getChild(i), screenshot);
+        }
+    }
+
+
+    private String checkIconCache(Bitmap buttonImage) {
+        byte[] base64EncodedBitmap = UnblindMediator.bitmapToBytes(buttonImage);
+        String storedLabel = null;
+        if (dbBound) {
+            Log.v(TAG, "Checking SP");
+            storedLabel = databaseService.getSharedData(UnblindMediator.TAG, base64EncodedBitmap);
+        }
+        return storedLabel;
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void announceTextFromEvent(String text) {
-        if (manager.isEnabled()) {
-            AccessibilityEvent e = AccessibilityEvent.obtain();
-            e.setEventType(AccessibilityEvent.TYPE_ANNOUNCEMENT);
-            e.setClassName(getClass().getName());
-            e.getText().add(text);
-            manager.sendAccessibilityEvent(e);
-            Log.e(TAG, "No description found. Custom description added here");
-        } else {
-            Log.e(TAG, "For some reason the manager did not work");
+        if (ttsReady) {
+            tts.speak(text, 1, null, null);
+            tts.speak("Double Tap to activate", 1, null, null);
         }
     }
 
@@ -106,25 +247,19 @@ public class UnblindAccessibilityService extends AccessibilityService implements
             return;
         }
 
-        if (source.getText() != null || source.getContentDescription() != null || event.getText().size() != 0) {
-            Log.e(TAG, "Existing description found");
-            if (source.getText() != null) {
-                Log.e(TAG, "source text: " + source.getText());
-            } else if (event.getText().size() != 0) {
-                Log.e(TAG, "event text: " + event.getText());
-            } else if (event.getContentDescription() != null) {
-                Log.e(TAG, "content description: " + event.getContentDescription());
-            }
-            return;
-        }
-        String currentNodeClassName = (String) source.getClassName();
-
-        if (currentNodeClassName == null || !currentNodeClassName.equals("android.widget.ImageButton")) {
-            Log.v(TAG, "currentNodeClassName is not android.widget.ImageButton: " + currentNodeClassName);
+        if (nodeHasDescription(source)) {
             source.recycle();
             return;
         }
 
+        if (shouldIgnoreNode(source)) {
+            // We don't try to describe non-buttons or basic image views at this point
+            source.recycle();
+            return;
+        }
+
+        if (ttsReady)
+            tts.speak(" ", 2, null, null);
 
         // From this point, we can assume the source UI element is an image button
         // which has been clicked/tapped
@@ -136,33 +271,31 @@ public class UnblindAccessibilityService extends AccessibilityService implements
                 final ColorSpace colorSpace = screenshot.getColorSpace();
                 Bitmap screenShotBM = Bitmap.wrapHardwareBuffer(hardwareBuffer, colorSpace);
                 hardwareBuffer.close();
-                Bitmap buttonImage = getButtonImageFromScreenshot(source, screenShotBM).copy(Bitmap.Config.RGBA_F16, true);
+                Bitmap buttonImage = getButtonImageFromScreenshot(source, screenShotBM).copy(Bitmap.Config.ARGB_8888, true);
 
                 // check screenshot against storage before notifying
-                byte[] base64EncodedBitmap = UnblindMediator.bitmapToBytes(buttonImage);
-                String storedLabel = null;
-                if (mBound) {
-                    Log.v(TAG, "Checking SP");
-                    storedLabel = mService.getSharedData(UnblindMediator.TAG, base64EncodedBitmap);
-                }
+                String storedLabel = checkIconCache(buttonImage);
 
                 // if the label already exists, don't notify
                 if (storedLabel != null) {
                     Log.v(TAG, "Found in SP");
-                    mediator.pushElementToOutgoing(new Pair<Bitmap, String>(buttonImage, storedLabel));
+                    mediator.pushElementToOutgoingImmediateQueue(new UnblindDataObject(buttonImage, storedLabel, false));
                     update();
-                }
-
-                // else if the label hasn't been seen before, notify
-                else if (mBound) {
-                    Log.e(TAG, "setting on mediator");
-                    mediator.pushElementToIncoming(new Pair<Bitmap, String>(buttonImage, "message"));
-                    currentElement = mediator.getElementFromIncoming();
-                    if (!mediator.checkIncomingSizeMoreThanOne()) {
+                } else if (dbBound) {
+                    // else if the label hasn't been seen before, notify
+                    if (ttsReady)
+                        tts.speak("Processing labels", 2, null, null);
+                    Log.d(TAG, "setting on mediator");
+                    mediator.pushElementToIncomingImmediateQueue(new UnblindDataObject(buttonImage, "", false));
+                    currentElement = mediator.getElementFromIncomingImmediateQueue();
+                    // TODO:test if this if condition is needed
+                    if (!mediator.checkIncomingImmediateQueueSizeMoreThanOne()) {
                         mediator.notifyObservers();
                     }
                 }
+                batchProcess(getHighestParent(source), screenShotBM);
                 source.recycle();
+                return;
             }
 
             @Override
@@ -207,29 +340,73 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         info.notificationTimeout = 100;
 
         this.setServiceInfo(info);
-        Log.e(TAG, "onServiceConnected: ");
+        Log.d(TAG, "onServiceConnected: ");
 
         // Bind DatabaseService
-        Intent intent = new Intent(this, DatabaseService.class);
-        startService(intent);
-        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+        Intent dbIntent = new Intent(this, DatabaseService.class);
+//        startService(dbIntent);
+        bindService(dbIntent, dbConnection, Context.BIND_AUTO_CREATE);
+
+        // Bind ModelService
+        Intent modelIntent = new Intent(this, ModelService.class);
+        bindService(modelIntent, modelConnection, Context.BIND_AUTO_CREATE);
+
+        // Bind BatchService
+        Intent batchIntent = new Intent(this, ModelService.class);
+        bindService(batchIntent, batchConnection, Context.BIND_AUTO_CREATE);
+
+        tts = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+                Log.d("Test", "123: " + status);
+                if (status != TextToSpeech.ERROR) {
+                    Log.d("Test", "123");
+                    // Setting locale, speech rate and voice pitch
+                    tts.setLanguage(Locale.UK);
+                    tts.setSpeechRate(1.0f);
+                    tts.setPitch(1.0f);
+                    ttsReady = true;
+                }
+            }
+        });
+    }
+
+    @Override
+    public void onDestroy() {
+        unbindService(modelConnection);
+        unbindService(batchConnection);
+        unbindService(dbConnection);
     }
 
     @Override
     public void update() {
         // Update mediator if the out queue is not empty AND the outgoing element is not the same as the current element?
-        if (!mediator.checkOutgoingEmpty() && !currentElement.second.equals(mediator.getElementFromOutgoing().second)) {
-            System.out.println(currentElement);
-            System.out.println(mediator.getElementFromOutgoing());
-            currentElement = mediator.serveElementFromOutgoing();
-            Log.e(TAG, "updating on accessibility element");
-            Log.e(TAG, currentElement.second);
-            // currentElement is now complete, can be sent to TalkBack
-            announceTextFromEvent(currentElement.second);
-            // if the in queue is not empty, notify observers
-            if (!mediator.checkIncomingEmpty()) {
-                mediator.notifyObservers();
-            }
+        Log.v(TAG, "Update");
+
+        if (mediator.checkOutgoingImmediateQueueEmpty()) {
+            Log.v(TAG, "outgoing queue is empty");
+            return;
+        }
+
+        if(mediator.getElementFromOutgoingImmediateQueue() == null)
+            return;
+
+        System.out.println(currentElement);
+        System.out.println(mediator.getElementFromOutgoingImmediateQueue());
+        currentElement = mediator.serveElementFromOutgoingImmediateQueue();
+        Log.d(TAG, "updating on accessibility element");
+
+        if (currentElement.batchStatus) {
+            Log.v(TAG, "Received generated batch label: " + currentElement.iconLabel);
+            Log.v(TAG, "Not speaking batch label...");
+            return;
+        }
+        Log.d(TAG, currentElement.iconLabel);
+        // currentElement is now complete, can be sent to TalkBack
+        announceTextFromEvent(currentElement.iconLabel);
+        // if the in queue is not empty, notify observers
+        if (!mediator.checkIncomingImmediateQueueEmpty()) {
+            mediator.notifyObservers();
         }
     }
 }
