@@ -7,10 +7,13 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.Voice;
+import android.view.Display;
 
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.SwitchPreferenceCompat;
+
+import com.google.android.material.tabs.TabLayout;
 
 import org.w3c.dom.Text;
 
@@ -63,7 +66,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             public boolean onPreferenceClick(Preference preference) {
                 //Code below for when Notification is clicked
                 getActivity().stopService(new Intent(getActivity(), ModelService.class));
-                getActivity().startService(new Intent(getActivity(), ModelService.class));
+                getActivity().startService(new Intent(getActivity(),ModelService.class));
                 return true;
             }
         });

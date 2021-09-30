@@ -138,11 +138,14 @@ public class ModelService extends Service implements ColleagueInterface {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         super.onStartCommand(intent, flags, startId);
+        startNotification();
         if (intent.getAction() != null && intent.getAction().equals(getString(R.string.turn_off))) {
             stopForeground(true);
         }
         return START_NOT_STICKY;
     }
+
+
 
         @Override
     public void onDestroy() {
