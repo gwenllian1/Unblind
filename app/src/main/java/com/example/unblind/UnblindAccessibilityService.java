@@ -16,9 +16,11 @@ import android.os.IBinder;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
 import android.view.Display;
+import android.view.KeyEvent;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityManager;
 import android.view.accessibility.AccessibilityNodeInfo;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
@@ -38,6 +40,8 @@ public class UnblindAccessibilityService extends AccessibilityService implements
     private UnblindDataObject currentElement = new UnblindDataObject(null, "", true);
     private TextToSpeech tts;
     private boolean ttsReady = false;
+    private boolean flagShortPress = false;
+    private boolean flagLongPress = false;
 
     private final ServiceConnection mConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
@@ -353,17 +357,81 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         }
     }
 
-    @Override
-    public boolean onGesture(int gestureId) {
-        if (gestureId == GESTURE_SWIPE_LEFT_AND_DOWN) {
-            Log.v(TAG, "Gesture detected.");
+//    @Override
+//    public boolean onGesture(int gestureId) {
+//        if (gestureId == GESTURE_SWIPE_LEFT_AND_DOWN) {
+//            Log.v(TAG, "Gesture detected.");
+//
+//            if (manager.isEnabled()) {  // If Accessibility service is enabled, pause service
+//                Log.d(TAG, "Ended service with gesture");
+//                disableSelf();
+//            }
+//            return true;
+//        }
+//        return false;
+//    }
 
-            if (manager.isEnabled()) {  // If Accessibility service is enabled, pause service
-                Log.v(TAG, "Ended service with gesture");
-                disableSelf();
+//    @Override
+//    public boolean onKeyDown(int keyCode, KeyEvent event) {
+//        if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
+//            event.startTracking();
+//            if (flagLongPress == true) {
+//                flagShortPress = false;
+//            } else {
+//                flagShortPress = true;
+//                flagLongPress = false;
+//            }
+//            Log.d("Test", "Press test");
+//            return true;
+//        }
+//        return super.onKeyEvent(event);
+//    }
+//
+//    @Override
+//    public boolean onKeyLongPress(int keyCode, KeyEvent event) {
+//        if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
+//            Log.d("Test", "Long");
+//            Toast.makeText(this, "Yo", Toast.LENGTH_SHORT).show();
+//            flagShortPress = false;
+//            flagLongPress = true;
+//        }
+//        return super.onKeyEvent(event);
+//    }
+//
+//    @Override
+//    public boolean onKeyUp(int keyCode, KeyEvent event) {
+//        if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
+//            event.startTracking();
+//            if (flagShortPress) {
+//                Log.d("Test", "Short");
+//            }
+//            flagShortPress = true;
+//            flagLongPress = false;
+//            return true;
+//        }
+//        return super.onKeyEvent(event);
+//    }
+//
+//    @Override
+//    public boolean onKeyMultiple(int keyCode, int keyCode1, KeyEvent event) {
+//        return false;
+//    }
+
+    @Override
+    protected boolean onKeyEvent(KeyEvent event) {
+
+        int action = event.getAction();
+        int keyCode = event.getKeyCode();
+
+        if (action == KeyEvent.ACTION_UP) {
+            if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
+                Log.d("Check", "KeyUp");
+                Toast.makeText(this, "KeyUp", Toast.LENGTH_SHORT).show();
+            } else if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
+                Log.d("Check", "KeyDown");
+                Toast.makeText(this, "KeyDown", Toast.LENGTH_SHORT).show();
             }
-            return true;
         }
-        return false;
+        return super.onKeyEvent(event);
     }
 }
