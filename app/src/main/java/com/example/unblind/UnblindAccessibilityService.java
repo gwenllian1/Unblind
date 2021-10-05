@@ -40,6 +40,9 @@ public class UnblindAccessibilityService extends AccessibilityService implements
     private boolean modelBound = false;
     private boolean batchBound = false;
     ExecutorService executorService = Executors.newSingleThreadExecutor();
+    private TextToSpeech tts;
+    private boolean ttsReady = false;
+
     private final ServiceConnection modelConnection = new ServiceConnection() {
 
         @Override
@@ -89,9 +92,6 @@ public class UnblindAccessibilityService extends AccessibilityService implements
             dbBound = false;
         }
     };
-    private UnblindDataObject currentElement = new UnblindDataObject(null, "", true);
-    private TextToSpeech tts;
-    private boolean ttsReady = false;
 
     private void setMediator(UnblindMediator mediator) {
         this.mediator = mediator;
@@ -287,7 +287,6 @@ public class UnblindAccessibilityService extends AccessibilityService implements
                         tts.speak("Processing labels", 2, null, null);
                     Log.d(TAG, "setting on mediator");
                     mediator.pushElementToIncomingImmediateQueue(new UnblindDataObject(buttonImage, "", false));
-                    currentElement = mediator.getElementFromIncomingImmediateQueue();
                     // TODO:test if this if condition is needed
                     if (!mediator.checkIncomingImmediateQueueSizeMoreThanOne()) {
                         mediator.notifyObservers();
@@ -391,9 +390,7 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         if(mediator.getElementFromOutgoingImmediateQueue() == null)
             return;
 
-        System.out.println(currentElement);
-        System.out.println(mediator.getElementFromOutgoingImmediateQueue());
-        currentElement = mediator.serveElementFromOutgoingImmediateQueue();
+        UnblindDataObject currentElement = mediator.serveElementFromOutgoingImmediateQueue();
         Log.d(TAG, "updating on accessibility element");
 
         if (currentElement.batchStatus) {
