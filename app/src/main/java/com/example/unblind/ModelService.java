@@ -1,6 +1,5 @@
 package com.example.unblind;
 
-import android.accessibilityservice.AccessibilityService;
 import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -11,31 +10,28 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.content.SharedPreferences;
-import android.graphics.Bitmap;
 import android.os.AsyncTask;
+import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
 import android.provider.Settings;
 import android.util.Log;
-import android.view.accessibility.AccessibilityManager;
+
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
-import androidx.preference.PreferenceManager;
-import androidx.work.OneTimeWorkRequest;
-import androidx.work.WorkManager;
-import com.example.unblind.model.TfliteClassifier;
 
+import com.example.unblind.model.TfliteClassifier;
 
 
 public class ModelService extends Service implements ColleagueInterface {
     public static final String TAG = "ModelService";
-    DatabaseService mService;
+    private final IBinder binder = new LocalBinder();
+    DatabaseService databaseService;
     UnblindMediator mediator;
-    WorkManager mWorkManager;
     UnblindDataObject currentElement = null;
-    boolean mBound = false;
+    boolean dbBound = false;
+    boolean batch = false;
 
     TfliteClassifier tfliteClassifier;
 
@@ -62,40 +58,58 @@ public class ModelService extends Service implements ColleagueInterface {
         this.tfliteClassifier = tfliteClassifier;
     }
 
-    private final ServiceConnection mConnection = new ServiceConnection() {
+    private final ServiceConnection dbConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
             DatabaseService.LocalBinder binder = (DatabaseService.LocalBinder) service;
-            mService = binder.getService();
-            mBound = true;
-            Log.e(TAG, "databaseServiceConnected");
+            databaseService = binder.getService();
+            dbBound = true;
+            Log.d(TAG, "databaseServiceConnected");
             // get mediator
-            Log.e(TAG, "bound, getting mediator");
-            mediator = mService.getUnblindMediator();
+            Log.d(TAG, "bound, getting mediator");
+            mediator = databaseService.getUnblindMediator();
+            batch = mediator.checkModelServiceObserver();
             mediator.addObserver((ColleagueInterface) getSelf());
-
         }
 
         public void onServiceDisconnected(ComponentName className) {
-            Log.e(TAG, "databaseServiceDisconnected");
-            mBound = false;
+            Log.d(TAG, "databaseServiceDisconnected");
+            dbBound = false;
         }
     };
 
+    public class LocalBinder extends Binder {
+        public ModelService getService() { return ModelService.this; }
+    }
+
     @Override
     public void update() {
-        if (mediator.checkIncomingEmpty()) {
-            return;
+        if (batch) {
+            if (mediator.checkIncomingBatchQueueEmpty()) {
+                return;
+            }
+            if (currentElement != null) {
+                Log.v(TAG, "ModelService is deferring processing...");
+                // When the current image has been processed,
+                // it will set currentElement to null and call this update method
+                return;
+            }
+            currentElement = mediator.serveElementFromIncomingBatchQueue();
+            Log.v(TAG, "BatchService is running prediction");
         }
-        if (currentElement != null) {
-            Log.v(TAG, "ModelService is deferring processing...");
-            // When the current image has been processed,
-            // it will set currentElement to null and call this update method
-            return;
+        else {
+            if (mediator.checkIncomingImmediateQueueEmpty()) {
+                return;
+            }
+            if (currentElement != null) {
+                Log.v(TAG, "ModelService is deferring processing...");
+                // When the current image has been processed,
+                // it will set currentElement to null and call this update method
+                return;
+            }
+            currentElement = mediator.serveElementFromIncomingImmediateQueue();
+            Log.v(TAG, "ModelService is running prediction");
         }
-        currentElement = mediator.serveElementFromIncoming();
         runPredication();
-        Log.v(TAG, "ModelService is about to processing icon data...");
-        Log.e(TAG, "updating element on model");
     }
 
     public ModelService getSelf() {
@@ -105,26 +119,27 @@ public class ModelService extends Service implements ColleagueInterface {
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
-        return null;
+        return binder;
     }
 
     @Override
     public void onCreate() {
         super.onCreate();
+
+        // execute classifier
+        new GetClassifier().execute();
+
+        // bind to DatabaseService
+        Intent newIntent = new Intent(this, DatabaseService.class);
+        bindService(newIntent, dbConnection, Context.BIND_AUTO_CREATE);
         startNotification();
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.e(TAG, "Model service started");
         super.onStartCommand(intent, flags, startId);
-//        loadClassifier();
-        new GetClassifier().execute();
-        // bind to DatabaseService
-        Intent newIntent = new Intent(this, DatabaseService.class);
-        startService(newIntent);
-        bindService(newIntent, mConnection, Context.BIND_AUTO_CREATE);
-        if(intent.getAction() != null && intent.getAction().equals(getString(R.string.turn_off))) {
+        startNotification();
+        if (intent.getAction() != null && intent.getAction().equals(getString(R.string.turn_off))) {
             stopForeground(true);
         }
         return START_NOT_STICKY;
@@ -132,16 +147,12 @@ public class ModelService extends Service implements ColleagueInterface {
 
 
 
+        @Override
+    public void onDestroy() {
+        unbindService(dbConnection);
+    }
 
-    // Client methods go here
-//    public void loadClassifier(){
-//        // use the function provided by Utils class
-//        String absolutePath = Utils.assetFilePath(this, "labeldroid.pt"); //get absolute path
-//        classifier = new Classifier(absolutePath);
-//    }
-
-
-    public void runPredication(){
+    public void runPredication() {
         String result = tfliteClassifier.predict(currentElement.iconImage);     // predict the bitmap
         Log.d("Team 3 Model Result", result);
         currentElement = new UnblindDataObject(currentElement.iconImage, result, currentElement.batchStatus);
@@ -149,9 +160,13 @@ public class ModelService extends Service implements ColleagueInterface {
         // store classified pair into cache
         Log.v(TAG, "setting in SP");
         byte[] base64EncodedBitmap = UnblindMediator.bitmapToBytes(currentElement.iconImage);
-        mService.setSharedData(UnblindMediator.TAG, base64EncodedBitmap, result);
+        databaseService.setSharedData(UnblindMediator.TAG, base64EncodedBitmap, result);
 
-        mediator.pushElementToOutgoing(currentElement);
+        // only push element to mediator if immediate processing
+        if (!batch) {
+            mediator.pushElementToOutgoingImmediateQueue(currentElement);
+        }
+
         currentElement = null;
         mediator.notifyObservers();
     }
@@ -159,11 +174,21 @@ public class ModelService extends Service implements ColleagueInterface {
     private void startNotification() {
         CharSequence text = getText(R.string.example_service_running);
 
-        PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
-                new Intent(this, MainActivity.class), 0);
+        // Setting up accessibility settings click action (Main notification click action)
+        Intent accessSettings = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
+        PendingIntent pAccessSettings = PendingIntent.getActivity(this, 0, accessSettings, 0);
+
+        // Setting up remove notification action
         Intent stopSelf = new Intent(this, ModelService.class);
         stopSelf.setAction(getString(R.string.turn_off));
-        PendingIntent pStopSelf = PendingIntent.getService(this, 0, stopSelf,PendingIntent.FLAG_CANCEL_CURRENT);
+        PendingIntent pStopSelf = PendingIntent.getService(this, 0, stopSelf, PendingIntent.FLAG_CANCEL_CURRENT);
+
+        // Setting up redirect to Unblind app click action
+        Intent redirectToApp = new Intent(this, MainActivity.class);
+        accessSettings.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        accessSettings.setAction(getString(R.string.redir_app));
+        PendingIntent pRedirectToApp = PendingIntent.getActivity(this, 0, redirectToApp,PendingIntent.FLAG_CANCEL_CURRENT);
+
 
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         String channelId = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ? createNotificationChannel(notificationManager) : "";
@@ -174,16 +199,17 @@ public class ModelService extends Service implements ColleagueInterface {
                 .setWhen(System.currentTimeMillis())
                 .setContentTitle(getText(R.string.example_service_label))
                 .setContentText(text)
-                .setContentIntent(contentIntent)
+                .setContentIntent(pAccessSettings) // sends user back to app when notification is clicked
                 .setCategory(NotificationCompat.CATEGORY_SERVICE)
                 .addAction(R.drawable.ic_android_black_24dp, getString(R.string.turn_off), pStopSelf)
+                .addAction(R.drawable.ic_android_black_24dp, getString(R.string.redir_app), pRedirectToApp)
                 .build();
 
         startForeground(1, notification);
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    private String createNotificationChannel(NotificationManager notificationManager){
+    private String createNotificationChannel(NotificationManager notificationManager) {
         String channelId = "exampleChannel";
         String channelName = "Example Channel";
         NotificationChannel channel = new NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_HIGH);

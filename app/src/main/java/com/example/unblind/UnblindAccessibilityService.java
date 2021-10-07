@@ -23,6 +23,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 
 import java.util.Locale;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -30,30 +32,66 @@ import java.util.concurrent.TimeUnit;
 public class UnblindAccessibilityService extends AccessibilityService implements ColleagueInterface {
     private static final String TAG = "UnBlind AS";
     private final ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(10, 10, 15, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
-    DatabaseService mService;
+    DatabaseService databaseService;
+    ModelService modelService;
+    ModelService batchService;
     private AccessibilityManager manager;
-    private boolean mBound = false;
-    private UnblindMediator mediator;
-    private UnblindDataObject currentElement = new UnblindDataObject(null, "", true);
-    private TextToSpeech tts;
-    private boolean ttsReady = false;
+    private boolean dbBound = false;
+    private boolean modelBound = false;
+    private boolean batchBound = false;
+    ExecutorService executorService = Executors.newSingleThreadExecutor();
+    private final ServiceConnection modelConnection = new ServiceConnection() {
 
-    private final ServiceConnection mConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            ModelService.LocalBinder binder = (ModelService.LocalBinder) service;
+            modelService = binder.getService();
+            modelBound = true;
+            Log.d(TAG, "modelServiceConnected");
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            Log.d(TAG, "modelServiceDisconnected");
+            modelBound = false;
+        }
+    };
+    private final ServiceConnection batchConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            ModelService.LocalBinder binder = (ModelService.LocalBinder) service;
+            batchService = binder.getService();
+            batchBound = true;
+            Log.d(TAG, "batchServiceConnected");
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            Log.d(TAG, "batchServiceDisconnected");
+            batchBound = false;
+        }
+    };
+    private UnblindMediator mediator;
+    private final ServiceConnection dbConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
             DatabaseService.LocalBinder binder = (DatabaseService.LocalBinder) service;
-            mService = binder.getService();
-            mBound = true;
-            setMediator(mService.getUnblindMediator());
-            Log.e(TAG, "databaseServiceConnected");
+            databaseService = binder.getService();
+            dbBound = true;
+            setMediator(databaseService.getUnblindMediator());
+            Log.d(TAG, "databaseServiceConnected");
 
         }
 
 
         public void onServiceDisconnected(ComponentName className) {
-            Log.e(TAG, "databaseServiceDisconnected");
-            mBound = false;
+            Log.d(TAG, "databaseServiceDisconnected");
+            dbBound = false;
         }
     };
+    private UnblindDataObject currentElement = new UnblindDataObject(null, "", true);
+    private TextToSpeech tts;
+    private boolean ttsReady = false;
 
     private void setMediator(UnblindMediator mediator) {
         this.mediator = mediator;
@@ -150,25 +188,28 @@ public class UnblindAccessibilityService extends AccessibilityService implements
             return;
         }
 
-        Log.v(TAG, "batchProcess - childCount = " + Integer.toString(source.getChildCount()));
+        Log.v(TAG, "batchProcess - childCount = " + source.getChildCount());
         if (!shouldIgnoreNode(source)) {
             // To avoid unnecessary usage of the model, below check should be enabled when not testing
             if (nodeHasDescription(source) == false) {
                 Log.v(TAG, "Getting bitmap for node in batch");
-                Bitmap buttonImage = getButtonImageFromScreenshot(source, screenshot).copy(Bitmap.Config.ARGB_8888, true);;
+                Bitmap buttonImage = getButtonImageFromScreenshot(source, screenshot).copy(Bitmap.Config.ARGB_8888, true);
 
                 // Disable cache lookup for now
                 String storedLabel = checkIconCache(buttonImage);
                 if (storedLabel != null) {
                     Log.v(TAG, "Found cached batch icon: " + storedLabel);
                     //announceTextFromEvent(storedLabel);
-                } else if (mBound) {
-                    // else if the label hasn't been seen before, notify
-                    UnblindDataObject element = new UnblindDataObject(buttonImage, null, true);
-                    Log.v(TAG, "batchProcess pushing element to incoming queue : " + element);
-                    mediator.pushElementToIncoming(element);
-                    Log.v(TAG, "batchProcess finished pushing element to incoming queue : " + element);
-                    mediator.notifyObservers();
+                } else if (dbBound) {
+                    executorService.execute(() -> {
+                        // else if the label hasn't been seen before, notify
+                        UnblindDataObject element = new UnblindDataObject(buttonImage, null, true);
+                        Log.v(TAG, "batchProcess pushing element to incoming queue : " + element);
+                        mediator.pushElementToIncomingBatchQueue(element);
+                        Log.v(TAG, "batchProcess finished pushing element to incoming queue : " + element);
+                        mediator.notifyObservers();
+                    });
+
                 }
             }
         }
@@ -182,9 +223,9 @@ public class UnblindAccessibilityService extends AccessibilityService implements
     private String checkIconCache(Bitmap buttonImage) {
         byte[] base64EncodedBitmap = UnblindMediator.bitmapToBytes(buttonImage);
         String storedLabel = null;
-        if(mBound) {
+        if (dbBound) {
             Log.v(TAG, "Checking SP");
-            storedLabel = mService.getSharedData(UnblindMediator.TAG, base64EncodedBitmap);
+            storedLabel = databaseService.getSharedData(UnblindMediator.TAG, base64EncodedBitmap);
         }
         return storedLabel;
     }
@@ -218,7 +259,7 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         }
 
         if (ttsReady)
-            tts.speak(" ", 2, null,null);
+            tts.speak(" ", 2, null, null);
 
         // From this point, we can assume the source UI element is an image button
         // which has been clicked/tapped
@@ -238,16 +279,17 @@ public class UnblindAccessibilityService extends AccessibilityService implements
                 // if the label already exists, don't notify
                 if (storedLabel != null) {
                     Log.v(TAG, "Found in SP");
-                    mediator.pushElementToOutgoing(new UnblindDataObject(buttonImage, storedLabel, false));
+                    mediator.pushElementToOutgoingImmediateQueue(new UnblindDataObject(buttonImage, storedLabel, false));
                     update();
-                } else if (mBound) {
+                } else if (dbBound) {
                     // else if the label hasn't been seen before, notify
                     if (ttsReady)
-                        tts.speak("Processing labels", 2, null,null);
-                    Log.e(TAG, "setting on mediator");
-                    mediator.pushElementToIncoming(new UnblindDataObject(buttonImage, "", false));
-                    currentElement = mediator.getElementFromIncoming();
-                    if (!mediator.checkIncomingSizeMoreThanOne()) {
+                        tts.speak("Processing labels", 2, null, null);
+                    Log.d(TAG, "setting on mediator");
+                    mediator.pushElementToIncomingImmediateQueue(new UnblindDataObject(buttonImage, "", false));
+                    currentElement = mediator.getElementFromIncomingImmediateQueue();
+                    // TODO:test if this if condition is needed
+                    if (!mediator.checkIncomingImmediateQueueSizeMoreThanOne()) {
                         mediator.notifyObservers();
                     }
                 }
@@ -298,18 +340,27 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         info.notificationTimeout = 100;
 
         this.setServiceInfo(info);
-        Log.e(TAG, "onServiceConnected: ");
+        Log.d(TAG, "onServiceConnected: ");
 
         // Bind DatabaseService
-        Intent intent = new Intent(this, DatabaseService.class);
-        startService(intent);
-        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+        Intent dbIntent = new Intent(this, DatabaseService.class);
+//        startService(dbIntent);
+        bindService(dbIntent, dbConnection, Context.BIND_AUTO_CREATE);
+
+        // Bind ModelService
+        Intent modelIntent = new Intent(this, ModelService.class);
+        bindService(modelIntent, modelConnection, Context.BIND_AUTO_CREATE);
+
+        // Bind BatchService
+        Intent batchIntent = new Intent(this, ModelService.class);
+        bindService(batchIntent, batchConnection, Context.BIND_AUTO_CREATE);
+
         tts = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
             @Override
             public void onInit(int status) {
-                Log.d("Test","123: " + status);
+                Log.d("Test", "123: " + status);
                 if (status != TextToSpeech.ERROR) {
-                    Log.d("Test","123");
+                    Log.d("Test", "123");
                     // Setting locale, speech rate and voice pitch
                     tts.setLanguage(Locale.UK);
                     tts.setSpeechRate(1.0f);
@@ -321,33 +372,40 @@ public class UnblindAccessibilityService extends AccessibilityService implements
     }
 
     @Override
+    public void onDestroy() {
+        unbindService(modelConnection);
+        unbindService(batchConnection);
+        unbindService(dbConnection);
+    }
+
+    @Override
     public void update() {
         // Update mediator if the out queue is not empty AND the outgoing element is not the same as the current element?
-        Log.v(TAG,"Update");
+        Log.v(TAG, "Update");
 
-        if (mediator.checkOutgoingEmpty()) {
+        if (mediator.checkOutgoingImmediateQueueEmpty()) {
             Log.v(TAG, "outgoing queue is empty");
             return;
         }
 
-        if(mediator.getElementFromOutgoing() == null)
+        if(mediator.getElementFromOutgoingImmediateQueue() == null)
             return;
 
         System.out.println(currentElement);
-        System.out.println(mediator.getElementFromOutgoing());
-        currentElement = mediator.serveElementFromOutgoing();
-        Log.e(TAG, "updating on accessibility element");
+        System.out.println(mediator.getElementFromOutgoingImmediateQueue());
+        currentElement = mediator.serveElementFromOutgoingImmediateQueue();
+        Log.d(TAG, "updating on accessibility element");
 
         if (currentElement.batchStatus) {
             Log.v(TAG, "Received generated batch label: " + currentElement.iconLabel);
             Log.v(TAG, "Not speaking batch label...");
             return;
         }
-        Log.e(TAG, currentElement.iconLabel);
+        Log.d(TAG, currentElement.iconLabel);
         // currentElement is now complete, can be sent to TalkBack
         announceTextFromEvent(currentElement.iconLabel);
         // if the in queue is not empty, notify observers
-        if (!mediator.checkIncomingEmpty()) {
+        if (!mediator.checkIncomingImmediateQueueEmpty()) {
             mediator.notifyObservers();
         }
     }

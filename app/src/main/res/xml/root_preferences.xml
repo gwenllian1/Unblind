@@ -15,12 +15,16 @@
             android:summary="@string/go_to_settings"
             />
 
-        <SwitchPreferenceCompat
-            android:id="@+id/NavSwitch"
-            app:key="@string/activate_notification_key"
-            app:summaryOff="@string/activate_notification_summary_off"
-            app:summaryOn="@string/activate_notification_summary_on"
-            app:title="@string/activate_notification_title"
+        <Preference
+            android:title="Language"
+            android:key="@string/ttsOptions_button"
+            android:summary="@string/go_to_ttsSettings"
+            />
+
+        <Preference
+            android:title="Notification"
+            android:key="@string/activate_notification_key"
+            android:summary="@string/activate_notification_summary"
             />
 
     </PreferenceCategory>
@@ -28,11 +32,6 @@
     <PreferenceCategory app:title="@string/information_header"
         app:icon="@drawable/ic_outline_info_24"
         android:layout="@layout/preference_title_layout">
-
-<!--        <EditTextPreference-->
-<!--            app:key="signature"-->
-<!--            app:title="@string/signature_title"-->
-<!--            app:useSimpleSummaryProvider="true" />-->
 
         <Preference
             android:title="Unblind Services"
