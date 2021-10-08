@@ -34,10 +34,6 @@ public class DatabaseService extends Service {
 
     @Override
     public IBinder onBind(Intent intent) {
-//        Log.e(TAG, "bound");
-//        setSharedData("testing", "image1", "label1");
-//        Log.e(TAG, "Unblindbound-after");
-//        getSharedData("testing", "image1");
         return binder;
     }
 

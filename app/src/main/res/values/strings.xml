@@ -26,9 +26,8 @@
     <!-- Information Titles -->
     <string name="information_header">Information</string>
     <string name="information_description">When enabled, Unblind works together with Talkback to
-provide descriptions for unlabelled icons in apps. This
-service is intended for users that have difficulty
-visualising on screen elements.</string>
+            provide descriptions for unlabelled icons in apps. This service is intended for users
+            that have difficulty visualising on screen elements.</string>
     <string name="information_use">How to use Unblind</string>
     <string name="information_use_description">- Turn on Unblind services through the Accessibility Settings (The ‘Activate Service’
             button can be used to direct you to settings). \n- Make sure Talkback is enabled; Unblind uses the services of Talkback to read out on-screen elements. \n- Use Talkback as usual (See Talkback for details of use). Labels which previously did
@@ -42,6 +41,7 @@ visualising on screen elements.</string>
 
     <!-- For use in UI -->
     <string name="service_button">Button</string>
+    <string name="ttsOptions_button">ttsOptions</string>
 
 
     <!-- Messages Preferences -->
@@ -51,12 +51,11 @@ visualising on screen elements.</string>
     <!-- Sync Preferences -->
     <string name="sync_title">Sync email periodically</string>
     <string name="attachment_title">Download incoming attachments</string>
-    <string name="activate_notification_summary_on">Notifications turned on</string>
-    <string name="activate_notification_summary_off">Turn on notifications</string>
+    <string name="activate_notification_summary">Click to Re-activate Unblind notification</string>
     <string name="activate_screen_summary_on">Screen Reader turned on</string>
     <string name="activate_screen_summary_off">Turn on Screen Reader</string>
-    <string name="example_service_running">Example service is running</string>
-    <string name="example_service_label">Example Service</string>
+    <string name="example_service_running">Unblind service: Click to open Accessibility Settings</string>
+    <string name="example_service_label">Unblind Service</string>
     <string name="example_service_stopped">Example service has stopped.</string>
     <string name="example_service_connected">Example service is connected.</string>
     <string name="example_service_disconnected">Example service is disconnected.</string>
@@ -64,10 +63,11 @@ visualising on screen elements.</string>
     <string name="channel_description">Just an example channel</string>
     <string name="accessibility_service_label">Unblind</string>
     <string name="accessibility_service_description">Provides machine learning generated alt-text to unlabelled UI icons to be read by screen readers.</string>
-    <string name="turn_off">Turn Off</string>
+    <string name="turn_off">Remove Notification</string>
+    <string name="redir_app">Open Unblind App</string>
     <string name="service_status_off">Service Status: OFF</string>
     <string name="service_status_on">Service Status: ON</string>
     <string name="go_to_settings">Click to go to Accessibility Settings</string>
-    <string name="advanced_settings">Advanced settings</string>
-    <string name="advanced_settings_summary">Click to adjust audio feedback configuration</string>
+    <string name="go_to_ttsSettings">Click to go to Text to Speech Settings</string>
+
 </resources>

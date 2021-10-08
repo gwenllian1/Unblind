@@ -1,22 +1,30 @@
 package com.example.unblind;
 
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.util.Base64;
 import android.util.Log;
-import android.util.Pair;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayDeque;
-import java.util.Queue;
 import java.util.ArrayList;
+import java.util.Queue;
 
+/**
+ * UnblindMediator which dictates the communication between the UnblindAccessibilityService and the
+ * ModelService, passing icon image bitmaps and generated descriptive labels between the two.
+ */
 public class UnblindMediator {
-    private ArrayList<ColleagueInterface> observers;
-    private Queue<UnblindDataObject> IncomingQueue = new ArrayDeque<>();
-    private Queue<UnblindDataObject> OutgoingQueue = new ArrayDeque<>();
+    private ArrayList<ColleagueInterface> observers = new ArrayList<>();
+    private Queue<UnblindDataObject> incomingImmediateQueue = new ArrayDeque<>();
+    private Queue<UnblindDataObject> incomingBatchQueue = new ArrayDeque<>();
+    private Queue<UnblindDataObject> outgoingQueue = new ArrayDeque<>();
     public static final String TAG = "UnblindMediator";
 
+    /**
+     * Converts a bitmap into a byte array.
+     *
+     * @param bitmap Bitmap to be converted into a byte array.
+     * @return Byte array conversion of bitmap input.
+     */
     public static byte[] bitmapToBytes(Bitmap bitmap) {
         // Get a Base64 encoded PNG of the button bitmap
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
@@ -24,62 +32,149 @@ public class UnblindMediator {
         return byteArrayOutputStream.toByteArray();
     }
 
-    public UnblindMediator() {
-        this.observers = new ArrayList<ColleagueInterface>();
-    }
-
-    public void addObserver(ColleagueInterface observer){
-        Log.e(TAG, "adding observer");
+    /**
+     * Adds an observer to the UnblindMediator.
+     * @param observer Observer object to the UnblindMediator implementing the ColleageInterface.
+     *                 interface
+     */
+    public void addObserver(ColleagueInterface observer) {
+        Log.d(TAG, "adding observer");
         observers.add(observer);
     }
 
-    public void removeObserver(ColleagueInterface observer){
-        Log.e(TAG, "removing observer");
+    /**
+     * Removes an observer from the UnblindMediator.
+     * @param observer Existing observer object to be removed from the UnblindMediator.
+     */
+    public void removeObserver(ColleagueInterface observer) {
+        Log.d(TAG, "removing observer");
         observers.remove(observer);
     }
 
-    public void notifyObservers(){
+    /**
+     * Notify all observers of the UnblindMediator to update themselves based on the state of the
+     * mediator.
+     */
+    public void notifyObservers() {
         for (ColleagueInterface observer : observers) {
             observer.update();
         }
     }
 
-    public boolean checkIncomingEmpty(){
-        return IncomingQueue.isEmpty();
+    /**
+     * Checks whether or not there is a ModelService currently observing the UnblindMediator.
+     * @return true if a ModelService is observing the mediator, and false otherwise.
+     */
+    public boolean checkModelServiceObserver() {
+        for (ColleagueInterface observer : observers) {
+            if (observer.getClass() == ModelService.class) {
+                return true;
+            }
+        }
+        return false;
     }
 
-    public boolean checkOutgoingEmpty() { return OutgoingQueue.isEmpty(); }
-
-    public boolean checkIncomingSizeMoreThanOne(){
-        return (IncomingQueue.size() > 1);
+    /**
+     * Checks if the incoming queue for immediate icon processing is empty.
+     * @return true if the incoming immediate queue is empty, false otherwise.
+     */
+    public boolean checkIncomingImmediateQueueEmpty() {
+        return incomingImmediateQueue.isEmpty();
     }
 
-    public void pushElementToIncoming(UnblindDataObject element){
-        IncomingQueue.add(element);
-        Log.e(TAG, "adding incoming element");
+    /**
+     * Checks if the incoming queue for immediate icon processing contains more than one element.
+     * @return true if there is more than one element in the incoming immediate queue, false
+     * otherwise.
+     */
+    public boolean checkIncomingImmediateQueueSizeMoreThanOne() {
+        return (incomingImmediateQueue.size() > 1);
     }
 
-    public UnblindDataObject getElementFromIncoming(){
-        return IncomingQueue.peek();
+    /**
+     * Pushes an element into the back of the incoming queue for immediate icon processing.
+     * @param element Element to be pushed into the queue.
+     */
+    public void pushElementToIncomingImmediateQueue(UnblindDataObject element) {
+        incomingImmediateQueue.add(element);
+        Log.d(TAG, "adding incoming element");
     }
 
-    public UnblindDataObject serveElementFromIncoming(){
-        return IncomingQueue.remove();
+    /**
+     * Peeks at the element at the front of the incoming queue for immediate icon processing.
+     * @return The element at the front of the queue.
+     */
+    public UnblindDataObject getElementFromIncomingImmediateQueue() {
+        return incomingImmediateQueue.peek();
     }
 
-    public void pushElementToOutgoing(UnblindDataObject element){
-        OutgoingQueue.add(element);
-        Log.e(TAG, "adding outgoing element");
+    /**
+     * Serves the element at the front of the incoming queue for immediate processing and returns
+     * it. The element is subsequently removed from the queue.
+     * @return The element at the front of the queue.
+     */
+    public UnblindDataObject serveElementFromIncomingImmediateQueue() {
+        return incomingImmediateQueue.remove();
     }
 
-    public UnblindDataObject getElementFromOutgoing(){
-        return OutgoingQueue.peek();
+    /**
+     * Checks if the incoming queue for batch icon processing is empty.
+     * @return true if the incoming queue for batch icons is empty, false otherwise.
+     */
+    public boolean checkIncomingBatchQueueEmpty() {
+        return incomingBatchQueue.isEmpty();
     }
 
-    public UnblindDataObject serveElementFromOutgoing(){
-        return OutgoingQueue.remove();
+    /**
+     * Pushes an element to the back of the incoming queue for batch icon processing.
+     * @param element Element to be pushed to the back of the queue.
+     */
+    public void pushElementToIncomingBatchQueue(UnblindDataObject element) {
+        incomingBatchQueue.add(element);
+        Log.d(TAG, "adding incoming element");
     }
 
+    /**
+     * Serves an element from the front of the incoming queue for batch icon processing and returns
+     * it. Subsequently, the element is removed from the queue.
+     * @return Element at the front of the queue.
+     */
+    public UnblindDataObject serveElementFromIncomingBatchQueue() {
+        return incomingBatchQueue.remove();
+    }
 
+    /**
+     * Pushes an element to the back of the outgoing queue for immediate icon processing.
+     * @param element Element to be pushed to into the queue.
+     */
+    public void pushElementToOutgoingImmediateQueue(UnblindDataObject element) {
+        outgoingQueue.add(element);
+        Log.d(TAG, "adding outgoing element");
+    }
+
+    /**
+     * Peeks at the element at the front of the outgoing queue for immediate icon processing.
+     * @return Element at the front of the queue.
+     */
+    public UnblindDataObject getElementFromOutgoingImmediateQueue() {
+        return outgoingQueue.peek();
+    }
+
+    /**
+     * Serves the element at the front of the outgoing queue for immediate icon processing and
+     * return it. Subsequently, the item is removed from the queue.
+     * @return Element at the front of the queue.
+     */
+    public UnblindDataObject serveElementFromOutgoingImmediateQueue() {
+        return outgoingQueue.remove();
+    }
+
+    /**
+     * Checks if the outgoing queue for batch icon processing is empty.
+     * @return true if the queue is empty, false otherwise.
+     */
+    public boolean checkOutgoingImmediateQueueEmpty() {
+        return outgoingQueue.isEmpty();
+    }
 
 }
