@@ -35,6 +35,10 @@
     <string name="information_turn_off">Turn off Unblind</string>
     <string name="information_turn_off_description">Turn off Unblind services through the
             Accessibility settings</string>
+    <string name="information_notifications">Notifications</string>
+    <string name="information_notification_description">Notifications can be enabled through the
+            \"Notification\" button. The notification will be accessible outside the application
+        for quick shortcuts to the application or the accessibility settings</string>
 
     <!-- Preference title for accessibility button (For integration with Team 2)-->
     <string name="accessibility_button">Button</string>
