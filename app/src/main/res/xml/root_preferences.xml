@@ -26,12 +26,6 @@
             android:key="@string/activate_notification_key"
             android:summary="@string/activate_notification_summary"
             />
-        <Preference
-            android:title="Advanced Settings"
-            android:key="@string/advanced_settings"
-            android:summary="@string/advanced_settings_summary"
-
-            />
 
     </PreferenceCategory>
 

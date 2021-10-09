@@ -258,7 +258,7 @@ public class UnblindAccessibilityService extends AccessibilityService implements
             source.recycle();
             return;
         }
-
+        announceTextFromEvent(" ", 2);
         defaultTextToSpeech.updateTTSConfig(getApplicationContext());
         announceTextFromEvent(" ", 2);
 
