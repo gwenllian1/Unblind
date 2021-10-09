@@ -108,9 +108,9 @@ public class UnblindAccessibilityService extends AccessibilityService implements
     }
 
     /**
-     *
-     * @param source
-     * @return
+     * Determines if a node is of the correct type to be processed by the service or not
+     * @param source The AccessibilityEvent source
+     * @return true if the node should be ignored, false otherwise
      */
     private boolean shouldIgnoreNode(AccessibilityNodeInfo source) {
         // Helper method to limit focus to only the specified classes
@@ -132,9 +132,10 @@ public class UnblindAccessibilityService extends AccessibilityService implements
     }
 
     /**
-     *
-     * @param source
-     * @return
+     * Checks if an accessibility node has an existing description that can be read by a screen
+     * reader
+     * @param source The AccessibilityEvent source
+     * @return true if an existing description is found, false otherwise
      */
     private boolean nodeHasDescription(AccessibilityNodeInfo source) {
         if (source == null) {
@@ -155,10 +156,10 @@ public class UnblindAccessibilityService extends AccessibilityService implements
     }
 
     /**
-     *
-     * @param buttonNode
-     * @param screenShotBM
-     * @return
+     * Crops the image of an AccessibilityNode of the buttonNode class from a screenshot
+     * @param buttonNode the AccessibilityNode whose image will be cropped
+     * @param screenShotBM the screenshot that the buttonImage image will be cropped from
+     * @return The bitmap of the cropped buttomImage
      */
     private Bitmap getButtonImageFromScreenshot(AccessibilityNodeInfo buttonNode, Bitmap screenShotBM) {
         Rect rectTest = new Rect();
@@ -275,8 +276,8 @@ public class UnblindAccessibilityService extends AccessibilityService implements
     }
 
     /**
-     *
-     * @param text
+     * Utilises text to speech engine to read text input, followed by "Double Tap to activate"
+     * @param text The text to be read aloud
      */
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void announceTextFromEvent(String text) {
