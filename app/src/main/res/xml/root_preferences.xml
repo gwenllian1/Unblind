@@ -45,6 +45,11 @@
             />
 
         <Preference
+            android:title="@string/information_notifications"
+            android:summary="@string/information_notification_description"
+            />
+
+        <Preference
             android:title="@string/information_turn_off"
             android:summary="@string/information_turn_off_description"
             />

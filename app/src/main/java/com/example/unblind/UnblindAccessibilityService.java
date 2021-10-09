@@ -29,6 +29,11 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * A service that initiates the workflow of the Unblind application.
+ * On-screen accessibility elements are accessed through screenshots of this service and the icons
+ * are passed to the mediator for processing.
+ */
 public class UnblindAccessibilityService extends AccessibilityService implements ColleagueInterface {
     private static final String TAG = "UnBlind AS";
     private final ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(10, 10, 15, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
@@ -93,11 +98,20 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         }
     };
 
+    /**
+     * Provide this service a reference to the mediator
+     * @param mediator object to aid with transport of data to the model
+     */
     private void setMediator(UnblindMediator mediator) {
         this.mediator = mediator;
         mediator.addObserver(this);
     }
 
+    /**
+     *
+     * @param source
+     * @return
+     */
     private boolean shouldIgnoreNode(AccessibilityNodeInfo source) {
         // Helper method to limit focus to only the specified classes
 
@@ -117,6 +131,11 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         return ignoreNode;
     }
 
+    /**
+     *
+     * @param source
+     * @return
+     */
     private boolean nodeHasDescription(AccessibilityNodeInfo source) {
         if (source == null) {
             return false;
@@ -135,6 +154,12 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         return ret;
     }
 
+    /**
+     *
+     * @param buttonNode
+     * @param screenShotBM
+     * @return
+     */
     private Bitmap getButtonImageFromScreenshot(AccessibilityNodeInfo buttonNode, Bitmap screenShotBM) {
         Rect rectTest = new Rect();
         // Copy the dimensions of the button to the rectTest object
@@ -151,6 +176,11 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         return buttonBitmap;
     }
 
+    /**
+     *
+     * @param source
+     * @return
+     */
     private AccessibilityNodeInfo getHighestParent(AccessibilityNodeInfo source) {
         Log.v(TAG, "Finding highest parent of initial node in batchProcess");
         AccessibilityNodeInfo tempNode = source.getParent();
@@ -163,6 +193,11 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         return returnNode;
     }
 
+    /**
+     *
+     * @param node
+     * @return
+     */
     private boolean nodeHasRelevantChildren(AccessibilityNodeInfo node) {
         if (node == null) {
             return false;
@@ -183,6 +218,11 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         return false;
     }
 
+    /**
+     * Batch processing of elements (icons) on screen to be sent to the model on a separate thread
+     * @param source source of window content
+     * @param screenshot icon screenshot (bitmap)
+     */
     private void batchProcess(AccessibilityNodeInfo source, Bitmap screenshot) {
         if (source == null) {
             return;
@@ -219,7 +259,11 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         }
     }
 
-
+    /**
+     * Check if icon is present in cache (SharedPreferences)
+     * @param buttonImage Bitmap image of the icon
+     * @return null if it is not in the cache, the icon description if it is found
+     */
     private String checkIconCache(Bitmap buttonImage) {
         byte[] base64EncodedBitmap = UnblindMediator.bitmapToBytes(buttonImage);
         String storedLabel = null;
@@ -230,6 +274,10 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         return storedLabel;
     }
 
+    /**
+     *
+     * @param text
+     */
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void announceTextFromEvent(String text) {
         if (ttsReady) {
@@ -238,6 +286,10 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         }
     }
 
+    /**
+     * Called when an accessibility event is detected from user actions
+     * @param event A new event
+     */
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
         Log.v(TAG, "onAccessibilityEvent: " + event.getClass().getName());
@@ -307,11 +359,17 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         });
     }
 
+    /**
+     * Called to interrupt the Accessibility feedback
+     */
     @Override
     public void onInterrupt() {
         Log.e(TAG, "onInterrupt: something went wrong");
     }
 
+    /**
+     * Called when connection to service is established
+     */
     @Override
     protected void onServiceConnected() {
         super.onServiceConnected();
@@ -370,6 +428,9 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         });
     }
 
+    /**
+     * Performs final cleanup before the activity is destroyed
+     */
     @Override
     public void onDestroy() {
         unbindService(modelConnection);
@@ -377,6 +438,11 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         unbindService(dbConnection);
     }
 
+    /**
+     * Updates relevant elements when changes are observed. Called by the mediator when changes
+     * occur.
+     * Announces text from given description by the model (through the mediator)
+     */
     @Override
     public void update() {
         // Update mediator if the out queue is not empty AND the outgoing element is not the same as the current element?
