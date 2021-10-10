@@ -290,7 +290,7 @@ public class UnblindAccessibilityService extends AccessibilityService implements
                     currentElement = mediator.getElementFromIncomingImmediateQueue();
                     // Current Element has action upon clicking
                     if(source.isClickable() || source.isLongClickable()){
-                        currentElement.setIsClickableTrue();
+                        currentElement.isClickable = true;
                     }
                     if (!mediator.checkIncomingImmediateQueueSizeMoreThanOne()) {
                         mediator.notifyObservers();

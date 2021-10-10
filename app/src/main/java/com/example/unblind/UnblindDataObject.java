@@ -18,12 +18,4 @@ public class UnblindDataObject {
     public boolean getIsClickable(){
         return this.isClickable;
     }
-
-    public void setIsClickableTrue(){
-        this.isClickable = true;
-    }
-
-    public void setIsClickableFalse(){
-        this.isClickable = true;
-    }
 }
