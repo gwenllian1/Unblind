@@ -12,9 +12,6 @@ import androidx.appcompat.app.AppCompatActivity;
  * Contains functions to handle the layout of activity_main xml
  */
 public class MainActivity extends AppCompatActivity {
-    Button buttonModelTest;
-    Button buttonRefreshStatus;
-
     /**
      * Initialises the activity main page.
      * @param savedInstanceState The most recent state supplied
