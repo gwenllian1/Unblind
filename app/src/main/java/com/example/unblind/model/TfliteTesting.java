@@ -21,8 +21,8 @@ import java.util.List;
  * 3/ Run the test by clicking the button in the app
  *
  * @author Team 3
- * @version 1.0
- * @since   05/15/2021
+ * @version 1.1
+ * @since   12/10/2021
  */
 public class TfliteTesting {
     private TfliteClassifier tfliteClassifier;       // classifier object
@@ -96,9 +96,9 @@ public class TfliteTesting {
     private void runPrediction() throws IOException {
         int index = 0;
         for (Bitmap bitmap : testImages) {     // loop through all bitmap
-            String result = tfliteClassifier.predict(bitmap); // predict the bitmap
+            TflitePrediction result = tfliteClassifier.predict(bitmap); // predict the bitmap
 
-            String output = "Image = " + availableNames.get(index) + ", Label = " + result; // append the result with the filename
+            String output = "Image = " + availableNames.get(index) + ", Label = " + result.getLabel(); // append the result with the filename
             predictions.add(output); // store output
 
             index += 1;     // increment the index for mapping the label
