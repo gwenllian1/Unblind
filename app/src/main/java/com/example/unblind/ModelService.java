@@ -24,6 +24,10 @@ import androidx.core.app.NotificationCompat;
 import com.example.unblind.model.TfliteClassifier;
 
 
+/**
+ * A service that provides access to the deep learning model.
+ * Generates labels when updated by the mediator.
+ */
 public class ModelService extends Service implements ColleagueInterface {
     public static final String TAG = "ModelService";
     private final IBinder binder = new LocalBinder();
@@ -67,8 +71,8 @@ public class ModelService extends Service implements ColleagueInterface {
             // get mediator
             Log.d(TAG, "bound, getting mediator");
             mediator = databaseService.getUnblindMediator();
-            batch = mediator.checkModelServiceObserver();
             mediator.addObserver((ColleagueInterface) getSelf());
+            batch = mediator.checkModelServiceObserver();
         }
 
         public void onServiceDisconnected(ComponentName className) {
@@ -82,6 +86,10 @@ public class ModelService extends Service implements ColleagueInterface {
     }
 
     @Override
+    /**
+     * Implementation of the ColleagueInterface method update()
+     * Checks if
+     */
     public void update() {
         if (batch) {
             if (mediator.checkIncomingBatchQueueEmpty()) {
@@ -93,8 +101,13 @@ public class ModelService extends Service implements ColleagueInterface {
                 // it will set currentElement to null and call this update method
                 return;
             }
-            currentElement = mediator.serveElementFromIncomingBatchQueue();
-            Log.v(TAG, "BatchService is running prediction");
+            if (!mediator.checkIncomingImmediateQueueEmpty()) {
+                currentElement = mediator.serveElementFromIncomingImmediateQueue();
+                Log.v(TAG, "ModelService is running prediction");
+            } else {
+                currentElement = mediator.serveElementFromIncomingBatchQueue();
+                Log.v(TAG, "BatchService is running prediction");
+            }
         }
         else {
             if (mediator.checkIncomingImmediateQueueEmpty()) {
@@ -163,7 +176,7 @@ public class ModelService extends Service implements ColleagueInterface {
         databaseService.setSharedData(UnblindMediator.TAG, base64EncodedBitmap, result);
 
         // only push element to mediator if immediate processing
-        if (!batch) {
+        if (!currentElement.batchStatus) {
             mediator.pushElementToOutgoingImmediateQueue(currentElement);
         }
 
