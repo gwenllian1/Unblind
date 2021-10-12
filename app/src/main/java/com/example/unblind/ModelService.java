@@ -91,36 +91,21 @@ public class ModelService extends Service implements ColleagueInterface {
      * Checks if
      */
     public void update() {
-        if (batch) {
-            if (mediator.checkIncomingBatchQueueEmpty()) {
-                return;
-            }
-            if (currentElement != null) {
-                Log.v(TAG, "ModelService is deferring processing...");
-                // When the current image has been processed,
-                // it will set currentElement to null and call this update method
-                return;
-            }
-            if (!mediator.checkIncomingImmediateQueueEmpty()) {
-                currentElement = mediator.serveElementFromIncomingImmediateQueue();
-                Log.v(TAG, "ModelService is running prediction");
-            } else {
-                currentElement = mediator.serveElementFromIncomingBatchQueue();
-                Log.v(TAG, "BatchService is running prediction");
-            }
+        if (mediator.checkIncomingBatchQueueEmpty()) {
+            return;
         }
-        else {
-            if (mediator.checkIncomingImmediateQueueEmpty()) {
-                return;
-            }
-            if (currentElement != null) {
-                Log.v(TAG, "ModelService is deferring processing...");
-                // When the current image has been processed,
-                // it will set currentElement to null and call this update method
-                return;
-            }
+        if (currentElement != null) {
+            Log.v(TAG, "ModelService is deferring processing...");
+            // When the current image has been processed,
+            // it will set currentElement to null and call this update method
+            return;
+        }
+        if (!mediator.checkIncomingImmediateQueueEmpty()) {
             currentElement = mediator.serveElementFromIncomingImmediateQueue();
-            Log.v(TAG, "ModelService is running prediction");
+            Log.v(TAG, "Immediate prediction running");
+        } else if (!mediator.checkIncomingBatchQueueEmpty()) {
+            currentElement = mediator.serveElementFromIncomingBatchQueue();
+            Log.v(TAG, "Batch prediction(s) running");
         }
         runPredication();
     }
