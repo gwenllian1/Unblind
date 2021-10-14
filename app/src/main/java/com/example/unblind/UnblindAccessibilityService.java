@@ -6,6 +6,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.ColorSpace;
 import android.graphics.Rect;
@@ -79,6 +80,8 @@ public class UnblindAccessibilityService extends AccessibilityService implements
             dbBound = false;
         }
     };
+    private UnblindDataObject currentElement = new UnblindDataObject(null, "", true);
+    private UnblindTextToSpeech defaultTextToSpeech;
 
     /**
      * Provide this service a reference to the mediator
@@ -256,16 +259,16 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         }
         return storedLabel;
     }
-
     /**
      * Utilises text to speech engine to read text input, followed by "Double Tap to activate"
      * @param text The text to be read aloud
      */
-    @RequiresApi(api = Build.VERSION_CODES.O)
-    private void announceTextFromEvent(String text) {
-        if (ttsReady) {
-            tts.speak(text, 1, null, null);
-            tts.speak("Double Tap to activate", 1, null, null);
+    private void announceTextFromEvent(String text, int mode) {
+        if (!defaultTextToSpeech.isTtsReady()) {
+            Log.d(TAG, "Text-to-speech is not available, attempt to reconnect");
+            defaultTextToSpeech = new UnblindTextToSpeech(this);
+        } else {
+            defaultTextToSpeech.ttsSpeak(text, mode, null, null);
         }
     }
 
@@ -292,9 +295,9 @@ public class UnblindAccessibilityService extends AccessibilityService implements
             source.recycle();
             return;
         }
-
-        if (ttsReady)
-            tts.speak(" ", 2, null, null);
+        announceTextFromEvent(" ", 2);
+        defaultTextToSpeech.updateTTSConfig(getApplicationContext());
+        announceTextFromEvent(" ", 2);
 
         // From this point, we can assume the source UI element is an image button
         // which has been clicked/tapped
@@ -318,11 +321,14 @@ public class UnblindAccessibilityService extends AccessibilityService implements
                     update();
                 } else if (dbBound) {
                     // else if the label hasn't been seen before, notify
-                    if (ttsReady)
-                        tts.speak("Processing labels", 2, null, null);
-                    Log.d(TAG, "setting on mediator");
+                    announceTextFromEvent(" ", 2);
+                    Log.e(TAG, "setting on mediator");
                     mediator.pushElementToIncomingImmediateQueue(new UnblindDataObject(buttonImage, "", false));
-                    // TODO:test if this if condition is needed
+                    currentElement = mediator.getElementFromIncomingImmediateQueue();
+                    // Current Element has action upon clicking
+                    if(source.isClickable() || source.isLongClickable()){
+                        currentElement.isClickable = true;
+                    }
                     if (!mediator.checkIncomingImmediateQueueSizeMoreThanOne()) {
                         mediator.notifyObservers();
                     }
@@ -391,20 +397,9 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         Intent modelIntent = new Intent(this, ModelService.class);
         bindService(modelIntent, modelConnection, Context.BIND_AUTO_CREATE);
 
-        tts = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
-            @Override
-            public void onInit(int status) {
-                Log.d("Test", "123: " + status);
-                if (status != TextToSpeech.ERROR) {
-                    Log.d("Test", "123");
-                    // Setting locale, speech rate and voice pitch
-                    tts.setLanguage(Locale.UK);
-                    tts.setSpeechRate(1.0f);
-                    tts.setPitch(1.0f);
-                    ttsReady = true;
-                }
-            }
-        });
+        // Bind BatchService
+        Intent batchIntent = new Intent(this, ModelService.class);
+        defaultTextToSpeech = new UnblindTextToSpeech(this);
     }
 
     /**
@@ -444,7 +439,11 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         }
         Log.d(TAG, currentElement.iconLabel);
         // currentElement is now complete, can be sent to TalkBack
-        announceTextFromEvent(currentElement.iconLabel);
+        announceTextFromEvent(currentElement.iconLabel, 1);
+        if(currentElement.getIsClickable()){
+            announceTextFromEvent("Double Tap to activate", 1);
+        }
+
         // if the in queue is not empty, notify observers
         if (!mediator.checkIncomingImmediateQueueEmpty()) {
             mediator.notifyObservers();
