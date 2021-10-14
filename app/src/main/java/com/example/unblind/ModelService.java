@@ -35,7 +35,6 @@ public class ModelService extends Service implements ColleagueInterface {
     UnblindMediator mediator;
     UnblindDataObject currentElement = null;
     boolean dbBound = false;
-    boolean batch = false;
 
     TfliteClassifier tfliteClassifier;
 
@@ -72,7 +71,6 @@ public class ModelService extends Service implements ColleagueInterface {
             Log.d(TAG, "bound, getting mediator");
             mediator = databaseService.getUnblindMediator();
             mediator.addObserver((ColleagueInterface) getSelf());
-            batch = mediator.checkModelServiceObserver();
         }
 
         public void onServiceDisconnected(ComponentName className) {
@@ -157,7 +155,6 @@ public class ModelService extends Service implements ColleagueInterface {
     /**
      * Classifies the the icon in the currentElement.
      * Doesn't push batch processed icons to the outgoing queue
-     * TODO: check if the incoming batch icons every get served
      */
     public void runPredication() {
         String result = tfliteClassifier.predict(currentElement.iconImage);     // predict the bitmap
