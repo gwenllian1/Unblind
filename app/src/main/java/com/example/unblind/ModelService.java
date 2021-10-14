@@ -88,7 +88,7 @@ public class ModelService extends Service implements ColleagueInterface {
     @Override
     /**
      * Implementation of the ColleagueInterface method update()
-     * Checks if
+     * Prioritises classification of icon buttons which are selected, then the batch processing icons
      */
     public void update() {
         if (mediator.checkIncomingBatchQueueEmpty()) {
@@ -110,6 +110,10 @@ public class ModelService extends Service implements ColleagueInterface {
         runPredication();
     }
 
+    /**
+     * Getter for this ModelService instance
+     * @return this ModelService instance
+     */
     public ModelService getSelf() {
         return this;
     }
@@ -150,6 +154,11 @@ public class ModelService extends Service implements ColleagueInterface {
         unbindService(dbConnection);
     }
 
+    /**
+     * Classifies the the icon in the currentElement.
+     * Doesn't push batch processed icons to the outgoing queue
+     * TODO: check if the incoming batch icons every get served
+     */
     public void runPredication() {
         String result = tfliteClassifier.predict(currentElement.iconImage);     // predict the bitmap
         Log.d("Team 3 Model Result", result);
