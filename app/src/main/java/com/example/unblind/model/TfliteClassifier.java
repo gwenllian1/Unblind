@@ -69,7 +69,7 @@ public class TfliteClassifier {
         return Model.createModel(context, "icons-classifier_model_final.tflite", options);
     }
 
-    public TflitePrediction predict(Bitmap bitmap){
+    public String predict(Bitmap bitmap){
         TensorImage image = TensorImage.fromBitmap(bitmap);
         TensorImage processedImage = imageProcessor.process(image);
         Outputs outputs = new Outputs(model);
@@ -85,7 +85,7 @@ public class TfliteClassifier {
         }
         String label = probabilityList.get(bestPredictedCategoryIndex).getLabel();
         TflitePrediction prediction = new TflitePrediction(label, maxScore);
-        return prediction;
+        return prediction.getLabel();
     }
 
     public void close() {

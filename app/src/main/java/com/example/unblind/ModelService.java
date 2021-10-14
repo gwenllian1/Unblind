@@ -154,8 +154,7 @@ public class ModelService extends Service implements ColleagueInterface {
     }
 
     public void runPredication() {
-        TflitePrediction result = tfliteClassifier.predict(currentElement.iconImage);     // predict the bitmap
-        String label = result.getLabel();
+        String label = tfliteClassifier.predict(currentElement.iconImage);     // predict the bitmap
         Log.d("Team 3 Model Result", label);
         currentElement = new UnblindDataObject(currentElement.iconImage, label, currentElement.batchStatus);
 

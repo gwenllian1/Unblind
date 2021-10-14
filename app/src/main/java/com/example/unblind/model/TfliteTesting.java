@@ -96,9 +96,9 @@ public class TfliteTesting {
     private void runPrediction() throws IOException {
         int index = 0;
         for (Bitmap bitmap : testImages) {     // loop through all bitmap
-            TflitePrediction result = tfliteClassifier.predict(bitmap); // predict the bitmap
+            String result = tfliteClassifier.predict(bitmap); // predict the bitmap
 
-            String output = "Image = " + availableNames.get(index) + ", Label = " + result.getLabel(); // append the result with the filename
+            String output = "Image = " + availableNames.get(index) + ", Label = " + result; // append the result with the filename
             predictions.add(output); // store output
 
             index += 1;     // increment the index for mapping the label
