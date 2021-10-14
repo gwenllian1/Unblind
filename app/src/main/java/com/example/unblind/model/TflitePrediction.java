@@ -12,8 +12,8 @@ public class TflitePrediction {
 
     private String predictionLabel;
     private float certaintyScore;
-    private final static double CERTAINTY_THRESHOLD = 0.7;
-    private final static String UNCERTAIN_MSG = "Unable to identify icon.";
+    private final static double CERTAINTY_THRESHOLD = 0.35;
+    private final static String UNCERTAIN_MSG = "Unknown icon";
 
     /**
      * Constructor for TflitePrediction
