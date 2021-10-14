@@ -160,9 +160,9 @@ public class UnblindAccessibilityService extends AccessibilityService implements
     }
 
     /**
-     *
-     * @param source
-     * @return
+     * Gets the highest parent node from a given accessibility node
+     * @param source accessibility node
+     * @return the parent node of source - if it exists
      */
     private AccessibilityNodeInfo getHighestParent(AccessibilityNodeInfo source) {
         Log.v(TAG, "Finding highest parent of initial node in batchProcess");
@@ -177,9 +177,9 @@ public class UnblindAccessibilityService extends AccessibilityService implements
     }
 
     /**
-     *
-     * @param node
-     * @return
+     * Checks if a node has children which can be classified by the model
+     * @param node a node to check if there are any iconbutton children
+     * @return true if there are iconbutton children, false otherwise
      */
     private boolean nodeHasRelevantChildren(AccessibilityNodeInfo node) {
         if (node == null) {
