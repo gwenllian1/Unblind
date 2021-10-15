@@ -21,8 +21,8 @@ import java.util.List;
  * 3/ Run the test by clicking the button in the app
  *
  * @author Team 3
- * @version 1.0
- * @since   05/15/2021
+ * @version 1.1
+ * @since   12/10/2021
  */
 public class TfliteTesting {
     private TfliteClassifier tfliteClassifier;       // classifier object
