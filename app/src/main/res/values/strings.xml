@@ -27,14 +27,14 @@
     <string name="information_header">Information</string>
     <string name="information_description">When enabled, Unblind works together with Talkback to
             provide descriptions for unlabelled icons in apps. This service is intended for users
-            that have difficulty visualising on screen elements.</string>
+            that have difficulty visualising on-screen elements.</string>
     <string name="information_use">How to use Unblind</string>
-    <string name="information_use_description">- Turn on Unblind services through the Accessibility Settings (The ‘Activate Service’
-            button can be used to direct you to settings). \n- Make sure Talkback is enabled; Unblind uses the services of Talkback to read out on-screen elements. \n- Use Talkback as usual (See Talkback for details of use). Labels which previously did
+    <string name="information_use_description">- Turn on Unblind services through the Accessibility Settings (The ‘Service Status’
+            button can be used to direct you to settings). \n- Make sure Talkback is enabled; Unblind uses the services of Talkback to read out on-screen elements. \n- Use Talkback as usual (See Talkback for details of use). Icons which previously did
             not have labels will have one generated for them and will be read aloud.</string>
     <string name="information_turn_off">Turn off Unblind</string>
     <string name="information_turn_off_description">Turn off Unblind services through the
-            Accessibility settings</string>
+            Accessibility settings ('Service Status' button)</string>
     <string name="information_notifications">Notifications</string>
     <string name="information_notification_description">Notifications can be enabled through the
             \"Notification\" button. The notification will be accessible outside the application
