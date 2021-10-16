@@ -37,6 +37,7 @@ public class UnblindAccessibilityService extends AccessibilityService implements
     ModelService modelService;
     ModelService batchService;
     private AccessibilityManager manager;
+    private AccessibilityNodeInfo clickedNode = new AccessibilityNodeInfo();
     private boolean dbBound = false;
     private boolean modelBound = false;
     private boolean batchBound = false;
@@ -303,6 +304,7 @@ public class UnblindAccessibilityService extends AccessibilityService implements
             source.recycle();
             return;
         }
+        clickedNode = source;
         announceTextFromEvent(" ", 2);
         defaultTextToSpeech.updateTTSConfig(getApplicationContext());
         announceTextFromEvent(" ", 2);
@@ -465,10 +467,8 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         Log.d(TAG, currentElement.iconLabel);
         // currentElement is now complete, can be sent to TalkBack
         announceTextFromEvent(currentElement.iconLabel, 1);
-        // TODO: Fix Double tap to Activate
-        Log.d("Adrian", currentElement.getIsClickable() + "");
-        if(currentElement.getIsClickable()){
-            announceTextFromEvent("Double Tap to activate", 1);
+        if(clickedNode.isClickable() || clickedNode.isLongClickable()){
+            announceTextFromEvent( "Double Tap to activate", 1);
         }
 
         // if the in queue is not empty, notify observers
