@@ -66,7 +66,7 @@ public class TfliteClassifier {
     }
 
     private Model modelBuild(Context context, Model.Options options) throws IOException {
-        return Model.createModel(context, "trainedModel.tflite", options);
+        return Model.createModel(context, "icons-classifier_model_final.tflite", options);
     }
 
     public String predict(Bitmap bitmap){
@@ -83,8 +83,9 @@ public class TfliteClassifier {
                 bestPredictedCategoryIndex = probabilityList.indexOf(category);
             }
         }
-        String result = probabilityList.get(bestPredictedCategoryIndex).getLabel();
-        return result;
+        String label = probabilityList.get(bestPredictedCategoryIndex).getLabel();
+        TflitePrediction prediction = new TflitePrediction(label, maxScore);
+        return prediction.getLabel();
     }
 
     public void close() {

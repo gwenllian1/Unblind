@@ -22,6 +22,7 @@ import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 
 import com.example.unblind.model.TfliteClassifier;
+import com.example.unblind.model.TflitePrediction;
 
 
 /**
@@ -157,14 +158,14 @@ public class ModelService extends Service implements ColleagueInterface {
      * Doesn't push batch processed icons to the outgoing queue
      */
     public void runPredication() {
-        String result = tfliteClassifier.predict(currentElement.iconImage);     // predict the bitmap
-        Log.d("Team 3 Model Result", result);
-        currentElement = new UnblindDataObject(currentElement.iconImage, result, currentElement.batchStatus);
+        String label = tfliteClassifier.predict(currentElement.iconImage);     // predict the bitmap
+        Log.d("Team 3 Model Result", label);
+        currentElement = new UnblindDataObject(currentElement.iconImage, label, currentElement.batchStatus);
 
         // store classified pair into cache
         Log.v(TAG, "setting in SP");
         byte[] base64EncodedBitmap = UnblindMediator.bitmapToBytes(currentElement.iconImage);
-        databaseService.setSharedData(UnblindMediator.TAG, base64EncodedBitmap, result);
+        databaseService.setSharedData(UnblindMediator.TAG, base64EncodedBitmap, label);
 
         // only push element to mediator if immediate processing
         if (!currentElement.batchStatus) {
