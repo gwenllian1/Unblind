@@ -34,7 +34,7 @@
             not have labels will have one generated for them and will be read aloud.</string>
     <string name="information_turn_off">Turn off Unblind</string>
     <string name="information_turn_off_description">Turn off Unblind services through the
-            Accessibility settings ('Service Status' button)</string>
+            Accessibility settings (\"Service Status\" button)</string>
     <string name="information_notifications">Notifications</string>
     <string name="information_notification_description">Notifications can be enabled through the
             \"Notification\" button. The notification will be accessible outside the application
