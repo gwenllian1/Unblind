@@ -97,8 +97,8 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             @Override
             public boolean onPreferenceClick(Preference preference) {
                 //Reactivate Notification when the Notification button is clicked
-                getActivity().stopService(new Intent(getActivity(), ModelService.class));
-                getActivity().startService(new Intent(getActivity(),ModelService.class));
+                getActivity().stopService(new Intent(getActivity(), UnblindNotification.class));
+                getActivity().startService(new Intent(getActivity(),UnblindNotification.class));
                 return true;
             }
         });
