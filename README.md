@@ -15,7 +15,7 @@ Unblind app <br>
 
 ## Running the app on an emulator 
 1. Click the drop down menu left of the play button and open the AVD manager. <br>
-  ![](https://drive.google.com/file/d/1ZJerwedxtOPIgVyP7qiX0nNfj4VUu8ay/view?usp=sharing) <br>
+  ![avd manager](avd-IMAGE.png) <br>
 2.Click create virtual device to create a new device (if you already have a device, that is fine as long as API level is at least 30). Pixel devices are recommended. <br>
 3.Select the emulator from the drop down menu and click the start button to start the app
 
