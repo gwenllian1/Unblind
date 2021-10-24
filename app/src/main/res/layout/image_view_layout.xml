@@ -10,7 +10,6 @@
     <ImageView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:src="@drawable/unblind_image"
         android:scaleType="fitCenter"
         android:contentDescription="Unblind Services"
         android:paddingStart="0dp"

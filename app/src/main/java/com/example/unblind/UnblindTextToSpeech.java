@@ -68,9 +68,21 @@ public class UnblindTextToSpeech {
         });
     }
 
+    /**
+     * This function is a getter to when the text is ready to be spoken
+     * @return boolean value if ready or not
+     */
     public boolean isTtsReady(){
         return ttsReady;
     }
+
+    /**
+     * This function speaks out given text in the System Language.
+     * @param text: string to be translated and spoken
+     * @param queueMode: Queuing strategy, an integer for whether it is blocking (2) or speaking out queue (1)
+     * @param params: Parameters for the request
+     * @param utteranceId: An unique identifier for this request
+     */
     public void ttsSpeak( CharSequence text,
                     int queueMode,
                     Bundle params,
@@ -78,6 +90,7 @@ public class UnblindTextToSpeech {
 
         String translatedText = translator.searchMatchingLanguageLabel((String) text,languageCode);
         defaultTextToSpeech.speak(translatedText, queueMode, params, utteranceId);
+
     }
 
     /**
@@ -119,11 +132,4 @@ public class UnblindTextToSpeech {
             }
         }
     }
-
-    public void resetTts(float ttsPitch){
-        defaultTextToSpeech.setPitch(1.0f);
-        defaultTextToSpeech.setSpeechRate(1.0f);
-    }
-
-
 }

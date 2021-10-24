@@ -42,6 +42,10 @@ import com.example.unblind.model.TfliteClassifier;
 import com.example.unblind.model.TflitePrediction;
 
 
+/**
+ * A service that provides access to the deep learning model.
+ * Generates labels when updated by the mediator.
+ */
 public class ModelService extends Service implements ColleagueInterface {
     public static final String TAG = "ModelService";
     private final IBinder binder = new LocalBinder();
@@ -49,7 +53,6 @@ public class ModelService extends Service implements ColleagueInterface {
     UnblindMediator mediator;
     UnblindDataObject currentElement = null;
     boolean dbBound = false;
-    boolean batch = false;
 
     TfliteClassifier tfliteClassifier;
 
@@ -85,7 +88,6 @@ public class ModelService extends Service implements ColleagueInterface {
             // get mediator
             Log.d(TAG, "bound, getting mediator");
             mediator = databaseService.getUnblindMediator();
-            batch = mediator.checkModelServiceObserver();
             mediator.addObserver((ColleagueInterface) getSelf());
         }
 
@@ -100,36 +102,34 @@ public class ModelService extends Service implements ColleagueInterface {
     }
 
     @Override
+    /**
+     * Implementation of the ColleagueInterface method update()
+     * Prioritises classification of icon buttons which are selected, then the batch processing icons
+     */
     public void update() {
-        if (batch) {
-            if (mediator.checkIncomingBatchQueueEmpty()) {
-                return;
-            }
-            if (currentElement != null) {
-                Log.v(TAG, "ModelService is deferring processing...");
-                // When the current image has been processed,
-                // it will set currentElement to null and call this update method
-                return;
-            }
-            currentElement = mediator.serveElementFromIncomingBatchQueue();
-            Log.v(TAG, "BatchService is running prediction");
+        if (mediator.checkIncomingBatchQueueEmpty()) {
+            return;
         }
-        else {
-            if (mediator.checkIncomingImmediateQueueEmpty()) {
-                return;
-            }
-            if (currentElement != null) {
-                Log.v(TAG, "ModelService is deferring processing...");
-                // When the current image has been processed,
-                // it will set currentElement to null and call this update method
-                return;
-            }
+        if (currentElement != null) {
+            Log.v(TAG, "ModelService is deferring processing...");
+            // When the current image has been processed,
+            // it will set currentElement to null and call this update method
+            return;
+        }
+        if (!mediator.checkIncomingImmediateQueueEmpty()) {
             currentElement = mediator.serveElementFromIncomingImmediateQueue();
-            Log.v(TAG, "ModelService is running prediction");
+            Log.v(TAG, "Immediate prediction running");
+        } else if (!mediator.checkIncomingBatchQueueEmpty()) {
+            currentElement = mediator.serveElementFromIncomingBatchQueue();
+            Log.v(TAG, "Batch prediction(s) running");
         }
         runPredication();
     }
 
+    /**
+     * Getter for this ModelService instance
+     * @return this ModelService instance
+     */
     public ModelService getSelf() {
         return this;
     }
@@ -170,6 +170,10 @@ public class ModelService extends Service implements ColleagueInterface {
         unbindService(dbConnection);
     }
 
+    /**
+     * Classifies the the icon in the currentElement.
+     * Doesn't push batch processed icons to the outgoing queue
+     */
     public void runPredication() {
         String label = tfliteClassifier.predict(currentElement.iconImage);     // predict the bitmap
         Log.d("Team 3 Model Result", label);
@@ -181,7 +185,7 @@ public class ModelService extends Service implements ColleagueInterface {
         databaseService.setSharedData(UnblindMediator.TAG, base64EncodedBitmap, label);
 
         // only push element to mediator if immediate processing
-        if (!batch) {
+        if (!currentElement.batchStatus) {
             mediator.pushElementToOutgoingImmediateQueue(currentElement);
         }
 
