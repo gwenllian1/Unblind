@@ -1,21 +1,21 @@
 
 <h2> Required Software / Technology Stack </h2>
-Android Device (APK >= 30 as of 22/10/2021, device is optional for development)
-Android Studio and SDK tools
-Google Colabotary 
-Deep learning model (available here)
-Unblind app
+Android Device (APK >= 30 as of 22/10/2021, device is optional for development) <br>
+Android Studio and SDK tools <br>
+Google Colabotary <br>
+Deep learning model (available here) <br>
+Unblind app <br>
 
 <h2>How To Deploy </h2>
-<h3>Initial setup <h3>
-1. Download or clone the Unblind App from the github repository (the repository is large and requires LFS support).
-   git clone https://github.com/gwenllian1/Unblind.git 
-3. Download Android studio [here](https://developer.android.com/studio?utm_source=android-studio)
-4. Open the Unblind app with Android studio. From here work on the app can be done
+<h3>Initial setup </h3>
+1. Download or clone the Unblind App from the github repository (the repository is large and requires LFS support). <br>
+   git clone https://github.com/gwenllian1/Unblind.git <br>
+3. Download Android studio [here](https://developer.android.com/studio?utm_source=android-studio) <br>
+4. Open the Unblind app with Android studio. From here work on the app can be done <br>
 
   <h2> Running the app on an emulator </h2>
-1. Click the drop down menu left of the play button and open the AVD manager.
-  ![](https://drive.google.com/file/d/1ZJerwedxtOPIgVyP7qiX0nNfj4VUu8ay/view?usp=sharing) 
+1. Click the drop down menu left of the play button and open the AVD manager. <br>
+  ![](https://drive.google.com/file/d/1ZJerwedxtOPIgVyP7qiX0nNfj4VUu8ay/view?usp=sharing) <br>
 2.Click create virtual device to create a new device (if you already have a device, that is fine as long as API level is at least 30). Pixel devices are recommended.
 3.Select the emulator from the drop down menu and click the start button to start the app
 
