@@ -41,7 +41,7 @@ This repository is unmonitored so any future work should be done by making a for
 **A summary of the class interactions is as follows:**
 ![simplified class diagram](class-diagram.PNG)
 
-** Some recommendations for further improvements include: **
+**Some recommendations for further improvements include:**
 * Considering the context of the icon in addition to the image when generating labels
 * Continually training the model on icons it gets incorrect
 * Extend support for image recognition from only button icons to general photos and images
