@@ -41,12 +41,10 @@ public class UnblindAccessibilityService extends AccessibilityService implements
     DatabaseService databaseService;
     ModelService modelService;
     private AccessibilityManager manager;
+    private AccessibilityNodeInfo clickedNode = new AccessibilityNodeInfo();
     private boolean dbBound = false;
     private boolean modelBound = false;
     ExecutorService executorService = Executors.newSingleThreadExecutor();
-    private TextToSpeech tts;
-    private boolean ttsReady = false;
-
     private final ServiceConnection modelConnection = new ServiceConnection() {
 
         @Override
@@ -84,8 +82,8 @@ public class UnblindAccessibilityService extends AccessibilityService implements
     private UnblindTextToSpeech defaultTextToSpeech;
 
     /**
-     * Provide this service a reference to the mediator
-     * @param mediator object to aid with transport of data to the model
+     * This function is a setter for the mediator
+     * @param mediator : Unblind Mediator
      */
     private void setMediator(UnblindMediator mediator) {
         this.mediator = mediator;
@@ -93,9 +91,9 @@ public class UnblindAccessibilityService extends AccessibilityService implements
     }
 
     /**
-     * Determines if a node is of the correct type to be processed by the service or not
-     * @param source The AccessibilityEvent source
-     * @return true if the node should be ignored, false otherwise
+     * This function checks the node class and returns a boolean whether the node is the type in which the model is interested in
+     * @param source : the current selected node
+     * @return boolean whether the node is the type in which the model is interested in
      */
     private boolean shouldIgnoreNode(AccessibilityNodeInfo source) {
         // Helper method to limit focus to only the specified classes
@@ -117,10 +115,9 @@ public class UnblindAccessibilityService extends AccessibilityService implements
     }
 
     /**
-     * Checks if an accessibility node has an existing description that can be read by a screen
-     * reader
-     * @param source The AccessibilityEvent source
-     * @return true if an existing description is found, false otherwise
+     * This function checks if the currently selected node has a description
+     * @param source : the current selected node
+     * @return boolean whether the node has a description
      */
     private boolean nodeHasDescription(AccessibilityNodeInfo source) {
         if (source == null) {
@@ -141,10 +138,10 @@ public class UnblindAccessibilityService extends AccessibilityService implements
     }
 
     /**
-     * Crops the image of an AccessibilityNode of the buttonNode class from a screenshot
-     * @param buttonNode the AccessibilityNode whose image will be cropped
-     * @param screenShotBM the screenshot that the buttonImage image will be cropped from
-     * @return The bitmap of the cropped buttomImage
+     * This function gets button images from a screenshot
+     * @param buttonNode : button nodes
+     * @param screenShotBM : Screenshot omage of the screen
+     * @return : bitmap of the button
      */
     private Bitmap getButtonImageFromScreenshot(AccessibilityNodeInfo buttonNode, Bitmap screenShotBM) {
         Rect rectTest = new Rect();
@@ -163,9 +160,9 @@ public class UnblindAccessibilityService extends AccessibilityService implements
     }
 
     /**
-     * Gets the highest parent node from a given accessibility node
-     * @param source accessibility node
-     * @return the parent node of source - if it exists
+     * This function finds the highest parent node that wraps all nodes from the current selected node
+     * @param source the currently selected node
+     * @return :the highest parent node that wraps all the nodes
      */
     private AccessibilityNodeInfo getHighestParent(AccessibilityNodeInfo source) {
         Log.v(TAG, "Finding highest parent of initial node in batchProcess");
@@ -205,9 +202,9 @@ public class UnblindAccessibilityService extends AccessibilityService implements
     }
 
     /**
-     * Batch processing of elements (icons) on screen to be sent to the model on a separate thread
-     * @param source source of window content
-     * @param screenshot icon screenshot (bitmap)
+     * This function performs batch processing
+     * @param source: AccessibilityNodeInfo, the highest parent node that wraps all the nodes
+     * @param screenshot: Screenshot image of the whole screen
      */
     private void batchProcess(AccessibilityNodeInfo source, Bitmap screenshot) {
         if (source == null) {
@@ -246,9 +243,9 @@ public class UnblindAccessibilityService extends AccessibilityService implements
     }
 
     /**
-     * Check if icon is present in cache (SharedPreferences)
-     * @param buttonImage Bitmap image of the icon
-     * @return null if it is not in the cache, the icon description if it is found
+     * This function checks for icon if it exists within the cache
+     * @param buttonImage: Bitmap of the button image
+     * @return : the icon label string if it exists
      */
     private String checkIconCache(Bitmap buttonImage) {
         byte[] base64EncodedBitmap = UnblindMediator.bitmapToBytes(buttonImage);
@@ -259,9 +256,11 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         }
         return storedLabel;
     }
+
     /**
-     * Utilises text to speech engine to read text input, followed by "Double Tap to activate"
-     * @param text The text to be read aloud
+     * This function speaks out given text strings
+     * @param text: string to be translated and spoken
+     * @param mode: Queuing strategy, an integer for whether it is blocking (2) or speaking out queue (1)
      */
     private void announceTextFromEvent(String text, int mode) {
         if (!defaultTextToSpeech.isTtsReady()) {
@@ -273,8 +272,9 @@ public class UnblindAccessibilityService extends AccessibilityService implements
     }
 
     /**
-     * Called when an accessibility event is detected from user actions
-     * @param event A new event
+     * This function is invoked whenever an accessibility event of "typeViewAccessibilityFocused" occurs
+     * Takes screenshot, crops bitmap of the button node and sends this bitmap to model service
+     * @param event: type accessibility event: typeViewAccessibilityFocused
      */
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
@@ -295,6 +295,7 @@ public class UnblindAccessibilityService extends AccessibilityService implements
             source.recycle();
             return;
         }
+        clickedNode = source;
         announceTextFromEvent(" ", 2);
         defaultTextToSpeech.updateTTSConfig(getApplicationContext());
         announceTextFromEvent(" ", 2);
@@ -302,9 +303,15 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         // From this point, we can assume the source UI element is an image button
         // which has been clicked/tapped
         takeScreenshot(Display.DEFAULT_DISPLAY, threadPoolExecutor, new TakeScreenshotCallback() {
+            /**
+             * This function invokes if the screenshot function executes successfully. It checks if the icon label is within the cache,
+             * and if it is then it reads it out, if not it updates the new icon label to the cache
+             * @param screenshot: Screenshot image of the whole screen
+             */
             @Override
             public void onSuccess(@NonNull ScreenshotResult screenshot) {
                 Log.v(TAG, "Screenshot successfully taken");
+                // Converting screenshot to BitMap
                 final HardwareBuffer hardwareBuffer = screenshot.getHardwareBuffer();
                 final ColorSpace colorSpace = screenshot.getColorSpace();
                 Bitmap screenShotBM = Bitmap.wrapHardwareBuffer(hardwareBuffer, colorSpace);
@@ -333,11 +340,17 @@ public class UnblindAccessibilityService extends AccessibilityService implements
                         mediator.notifyObservers();
                     }
                 }
+                // Passing all the nodes into Batch Process
                 batchProcess(getHighestParent(source), screenShotBM);
                 source.recycle();
                 return;
             }
 
+            /**
+             * This function is an error handler, called if screenshot taken is not successful,
+             * if screenshot is taken too fast or too often repetitively
+             * @param errorCode: integer of the error
+             */
             @Override
             public void onFailure(int errorCode) {
                 Log.e(TAG, "Failed to take screenshot - errorCode: " + errorCode);
@@ -349,7 +362,7 @@ public class UnblindAccessibilityService extends AccessibilityService implements
     }
 
     /**
-     * Called to interrupt the Accessibility feedback
+     * Function to display error handling, to display when system is interrupted/ abruptly disconnected
      */
     @Override
     public void onInterrupt() {
@@ -357,7 +370,8 @@ public class UnblindAccessibilityService extends AccessibilityService implements
     }
 
     /**
-     * Called when connection to service is established
+     * This Function initialises the set up of the Service, including the database, the model,
+     * Text to Speech and any other related services
      */
     @Override
     protected void onServiceConnected() {
@@ -403,7 +417,7 @@ public class UnblindAccessibilityService extends AccessibilityService implements
     }
 
     /**
-     * Performs final cleanup before the activity is destroyed
+     * This function turns off all services to avoid crashing and information leak
      */
     @Override
     public void onDestroy() {
@@ -432,6 +446,7 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         UnblindDataObject currentElement = mediator.serveElementFromOutgoingImmediateQueue();
         Log.d(TAG, "updating on accessibility element");
 
+        // Checking if current element is in batch processing
         if (currentElement.batchStatus) {
             Log.v(TAG, "Received generated batch label: " + currentElement.iconLabel);
             Log.v(TAG, "Not speaking batch label...");
@@ -440,8 +455,8 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         Log.d(TAG, currentElement.iconLabel);
         // currentElement is now complete, can be sent to TalkBack
         announceTextFromEvent(currentElement.iconLabel, 1);
-        if(currentElement.getIsClickable()){
-            announceTextFromEvent("Double Tap to activate", 1);
+        if(clickedNode.isClickable() || clickedNode.isLongClickable()){
+            announceTextFromEvent( "Double Tap to activate", 1);
         }
 
         // if the in queue is not empty, notify observers
