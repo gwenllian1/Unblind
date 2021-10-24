@@ -31,12 +31,12 @@ To assist new developers, here are links to the [model training code](https://co
 This repository is unmonitored so any future work should be done by making a fork.
 
 **The current state of Unblind is as follows:**
-*Works on the most recent version of Android (API >= 30)
-*By taking screenshots, unlabelled icons can be extracted and fed to the Tensorflow Lite deep learning model
-*Implements batch processing of all icons on the screen to improve response time
-*Caches labels and their corresponding icons to save processing time
-*Supports pre-processing of unlabelled icons 
-*Provides Spanish and Chinese translations of the supported icon labels 
+* Works on the most recent version of Android (API >= 30)
+* By taking screenshots, unlabelled icons can be extracted and fed to the Tensorflow Lite deep learning model
+* Implements batch processing of all icons on the screen to improve response time
+* Caches labels and their corresponding icons to save processing time
+* Supports pre-processing of unlabelled icons 
+* Provides Spanish and Chinese translations of the supported icon labels 
 
 **A summary of the class interactions is as follows:**
 ![simplified class diagram](class-diagram.PNG)
