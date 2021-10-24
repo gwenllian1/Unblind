@@ -6,25 +6,25 @@ Google Colabotary <br>
 Deep learning model (available here) <br>
 Unblind app <br>
 
-<h2>How To Deploy </h2>
-<h3>Initial setup </h3>
+## How To Deploy 
+### Initial setup 
 1. Download or clone the Unblind App from the github repository (the repository is large and requires LFS support). <br>
    git clone https://github.com/gwenllian1/Unblind.git <br>
 3. Download Android studio [here](https://developer.android.com/studio?utm_source=android-studio) <br>
 4. Open the Unblind app with Android studio. From here work on the app can be done <br>
 
-  <h2> Running the app on an emulator </h2>
+## Running the app on an emulator 
 1. Click the drop down menu left of the play button and open the AVD manager. <br>
   ![](https://drive.google.com/file/d/1ZJerwedxtOPIgVyP7qiX0nNfj4VUu8ay/view?usp=sharing) <br>
-2.Click create virtual device to create a new device (if you already have a device, that is fine as long as API level is at least 30). Pixel devices are recommended.
+2.Click create virtual device to create a new device (if you already have a device, that is fine as long as API level is at least 30). Pixel devices are recommended. <br>
 3.Select the emulator from the drop down menu and click the start button to start the app
 
-  <h2> Running the app on an Android device </h2>
-1.Click about phone -> software information -> build number to turn on development mode(this can be slightly different for different devices).
-2.Go to Android studio and choose the Android device from the dropdown menu
+## Running the app on an Android device 
+1.Click about phone -> software information -> build number to turn on development mode(this can be slightly different for different devices). <br>
+2.Go to Android studio and choose the Android device from the dropdown menu <br>
 3.Click play
 
-  <h2>Summary of Helpful Information</h2>
+## Summary of Helpful Information
 To assist new developers, here are links to the [model training code](https://colab.research.google.com/drive/14gCMA5bSni_I-oPFmjfWeRH1C8niefqQ?usp=sharing) and [data](https://drive.google.com/file/d/1pXaT1d5mQPsDLq_cJiskhLGqaRfBAEn5/view?usp=sharing), [a copy of the model](https://drive.google.com/file/d/1H1PdcZtZqVYZweIju2ZKQbepTMnK5pTj/view?usp=sharing), and [the model training history](https://docs.google.com/document/d/1XJWlhYr0uukgAzRN1SzruF9j-9K1R9ckO1_zFcMYZZE/edit?usp=sharing). 
 
 This repository is unmonitored so any future work should be done by making a fork.
@@ -44,7 +44,7 @@ This repository is unmonitored so any future work should be done by making a for
 *Continually training the model on icons it gets incorrect
 *Extend support for image recognition from only button icons to general photos and images
 
-  <h2>Versioning Strategy</h2>
+ ##Versioning Strategy
 The initial development of Unblind used V1-V3 indicating the application state at the end of each project increment (PI). We chose not to follow the major.minor.patch convention because tags were made at 6 week increments and major changes were made each time.
 
 For all future work,  it is recommended that the traditional semantic versioning strategy (major.minor.patch) should be used. 
@@ -55,7 +55,7 @@ Patch = small changes that are backwards compatible.
 
 **Please make a fork of the repository prior to making any changes. **
 
-  <h2> Pull Request Strategy</h2>
+## Pull Request Strategy
 After the 24/10/2021, this repository will be un-monitored so it is recommended that contributors should make a fork and perform their pull requests there using traditional DevOps practices. It should be noted that our developers found it difficult to automate a CI/CD pipeline because of the difficulty of mocking and writing unit tests for the many different Android interfaces that were used - especially services. It is recommended that future developers attempt automation because it is best practice, however if that fails we found that a manual pipeline was sufficient. 
 
 If it is necessary to work in this repository, all feature branches must be made from the main branch, and must be named after the feature being developed. Merging between non-main branches can be done freely, and branches should be deleted when they are no longer needed. 
@@ -64,7 +64,7 @@ To merge to main, a pull request is required. The pull request must include code
 
 An in-depth explanation of Git usage for this project (including how to make pull requests) is available [here](https://drive.google.com/file/d/1OusG6dZiFDWpPdb3RtgrlmSHrn46ndlk/view?usp=sharing).
 
-  <h2>Licencing</h2>
+## Licencing
 The team has resolved that the UnBlind app will be licensed under GPLv3. This replaces our decision made earlier in the project to use the MIT license. While the MIT license permits creating derivative works with proprietary licenses, GPLv3 forbids this with the intention to keep the software free and open source. The fundamental freedoms that the GPLv3 aims to uphold are:
 the freedom to use the software for any purpose,
 the freedom to change the software to suit your needs,
