@@ -9,7 +9,7 @@ Unblind app
 <h2>How To Deploy </h2>
 <h3>Initial setup <h3>
 1. Download or clone the Unblind App from the github repository (the repository is large and requires LFS support).
-   git clone https://github.com/gwenllian1/Unblind.git <br>
+   git clone https://github.com/gwenllian1/Unblind.git 
 3. Download Android studio [here](https://developer.android.com/studio?utm_source=android-studio)
 4. Open the Unblind app with Android studio. From here work on the app can be done
 
