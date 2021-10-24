@@ -66,11 +66,15 @@ public class UnblindMediator {
      * @return true if a ModelService is observing the mediator, and false otherwise.
      */
     public boolean checkModelServiceObserver() {
+        Log.v(TAG, "checking if any observers are ModelService");
         for (ColleagueInterface observer : observers) {
+            Log.v(TAG, String.valueOf(observer.getClass()));
             if (observer.getClass() == ModelService.class) {
+                Log.v(TAG, "observers are ModelService");
                 return true;
             }
         }
+        Log.v(TAG, "observers are not ModelService");
         return false;
     }
 
@@ -97,7 +101,7 @@ public class UnblindMediator {
      */
     public void pushElementToIncomingImmediateQueue(UnblindDataObject element) {
         incomingImmediateQueue.add(element);
-        Log.d(TAG, "adding incoming element");
+        Log.d(TAG, "adding incoming element to immediate queue");
     }
 
     /**
@@ -114,6 +118,7 @@ public class UnblindMediator {
      * @return The element at the front of the queue.
      */
     public UnblindDataObject serveElementFromIncomingImmediateQueue() {
+        Log.d(TAG, "serving incoming element from immediate queue");
         return incomingImmediateQueue.remove();
     }
 
@@ -131,7 +136,7 @@ public class UnblindMediator {
      */
     public void pushElementToIncomingBatchQueue(UnblindDataObject element) {
         incomingBatchQueue.add(element);
-        Log.d(TAG, "adding incoming element");
+        Log.d(TAG, "adding incoming element to batch queue");
     }
 
     /**

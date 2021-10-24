@@ -35,13 +35,17 @@
 
         <Preference
             android:title="Unblind Services"
-            android:key="@string/accessibility_button"
             android:summary="@string/information_description"
             />
 
         <Preference
             android:title="@string/information_use"
             android:summary="@string/information_use_description"
+            />
+
+        <Preference
+            android:title="@string/information_notifications"
+            android:summary="@string/information_notification_description"
             />
 
         <Preference

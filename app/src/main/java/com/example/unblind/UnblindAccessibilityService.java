@@ -30,17 +30,23 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * A service that initiates the workflow of the Unblind application.
+ * On-screen accessibility elements are accessed through screenshots of this service and the icons
+ * are passed to the mediator for processing.
+ */
 public class UnblindAccessibilityService extends AccessibilityService implements ColleagueInterface {
     private static final String TAG = "UnBlind AS";
     private final ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(10, 10, 15, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
     DatabaseService databaseService;
     ModelService modelService;
-    ModelService batchService;
     private AccessibilityManager manager;
     private boolean dbBound = false;
     private boolean modelBound = false;
-    private boolean batchBound = false;
     ExecutorService executorService = Executors.newSingleThreadExecutor();
+    private TextToSpeech tts;
+    private boolean ttsReady = false;
+
     private final ServiceConnection modelConnection = new ServiceConnection() {
 
         @Override
@@ -55,22 +61,6 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         public void onServiceDisconnected(ComponentName name) {
             Log.d(TAG, "modelServiceDisconnected");
             modelBound = false;
-        }
-    };
-    private final ServiceConnection batchConnection = new ServiceConnection() {
-
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            ModelService.LocalBinder binder = (ModelService.LocalBinder) service;
-            batchService = binder.getService();
-            batchBound = true;
-            Log.d(TAG, "batchServiceConnected");
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            Log.d(TAG, "batchServiceDisconnected");
-            batchBound = false;
         }
     };
     private UnblindMediator mediator;
@@ -93,11 +83,20 @@ public class UnblindAccessibilityService extends AccessibilityService implements
     private UnblindDataObject currentElement = new UnblindDataObject(null, "", true);
     private UnblindTextToSpeech defaultTextToSpeech;
 
+    /**
+     * Provide this service a reference to the mediator
+     * @param mediator object to aid with transport of data to the model
+     */
     private void setMediator(UnblindMediator mediator) {
         this.mediator = mediator;
         mediator.addObserver(this);
     }
 
+    /**
+     * Determines if a node is of the correct type to be processed by the service or not
+     * @param source The AccessibilityEvent source
+     * @return true if the node should be ignored, false otherwise
+     */
     private boolean shouldIgnoreNode(AccessibilityNodeInfo source) {
         // Helper method to limit focus to only the specified classes
 
@@ -117,6 +116,12 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         return ignoreNode;
     }
 
+    /**
+     * Checks if an accessibility node has an existing description that can be read by a screen
+     * reader
+     * @param source The AccessibilityEvent source
+     * @return true if an existing description is found, false otherwise
+     */
     private boolean nodeHasDescription(AccessibilityNodeInfo source) {
         if (source == null) {
             return false;
@@ -135,6 +140,12 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         return ret;
     }
 
+    /**
+     * Crops the image of an AccessibilityNode of the buttonNode class from a screenshot
+     * @param buttonNode the AccessibilityNode whose image will be cropped
+     * @param screenShotBM the screenshot that the buttonImage image will be cropped from
+     * @return The bitmap of the cropped buttomImage
+     */
     private Bitmap getButtonImageFromScreenshot(AccessibilityNodeInfo buttonNode, Bitmap screenShotBM) {
         Rect rectTest = new Rect();
         // Copy the dimensions of the button to the rectTest object
@@ -151,6 +162,11 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         return buttonBitmap;
     }
 
+    /**
+     * Gets the highest parent node from a given accessibility node
+     * @param source accessibility node
+     * @return the parent node of source - if it exists
+     */
     private AccessibilityNodeInfo getHighestParent(AccessibilityNodeInfo source) {
         Log.v(TAG, "Finding highest parent of initial node in batchProcess");
         AccessibilityNodeInfo tempNode = source.getParent();
@@ -163,6 +179,11 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         return returnNode;
     }
 
+    /**
+     * Checks if a node has children which can be classified by the model
+     * @param node a node to check if there are any iconbutton children
+     * @return true if there are iconbutton children, false otherwise
+     */
     private boolean nodeHasRelevantChildren(AccessibilityNodeInfo node) {
         if (node == null) {
             return false;
@@ -183,6 +204,11 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         return false;
     }
 
+    /**
+     * Batch processing of elements (icons) on screen to be sent to the model on a separate thread
+     * @param source source of window content
+     * @param screenshot icon screenshot (bitmap)
+     */
     private void batchProcess(AccessibilityNodeInfo source, Bitmap screenshot) {
         if (source == null) {
             return;
@@ -219,7 +245,11 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         }
     }
 
-
+    /**
+     * Check if icon is present in cache (SharedPreferences)
+     * @param buttonImage Bitmap image of the icon
+     * @return null if it is not in the cache, the icon description if it is found
+     */
     private String checkIconCache(Bitmap buttonImage) {
         byte[] base64EncodedBitmap = UnblindMediator.bitmapToBytes(buttonImage);
         String storedLabel = null;
@@ -229,7 +259,10 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         }
         return storedLabel;
     }
-
+    /**
+     * Utilises text to speech engine to read text input, followed by "Double Tap to activate"
+     * @param text The text to be read aloud
+     */
     private void announceTextFromEvent(String text, int mode) {
         if (!defaultTextToSpeech.isTtsReady()) {
             Log.d(TAG, "Text-to-speech is not available, attempt to reconnect");
@@ -239,6 +272,10 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         }
     }
 
+    /**
+     * Called when an accessibility event is detected from user actions
+     * @param event A new event
+     */
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
         Log.v(TAG, "onAccessibilityEvent: " + event.getClass().getName());
@@ -311,11 +348,17 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         });
     }
 
+    /**
+     * Called to interrupt the Accessibility feedback
+     */
     @Override
     public void onInterrupt() {
         Log.e(TAG, "onInterrupt: something went wrong");
     }
 
+    /**
+     * Called when connection to service is established
+     */
     @Override
     protected void onServiceConnected() {
         super.onServiceConnected();
@@ -356,17 +399,23 @@ public class UnblindAccessibilityService extends AccessibilityService implements
 
         // Bind BatchService
         Intent batchIntent = new Intent(this, ModelService.class);
-        bindService(batchIntent, batchConnection, Context.BIND_AUTO_CREATE);
         defaultTextToSpeech = new UnblindTextToSpeech(this);
     }
 
+    /**
+     * Performs final cleanup before the activity is destroyed
+     */
     @Override
     public void onDestroy() {
         unbindService(modelConnection);
-        unbindService(batchConnection);
         unbindService(dbConnection);
     }
 
+    /**
+     * Updates relevant elements when changes are observed. Called by the mediator when changes
+     * occur.
+     * Announces text from given description by the model (through the mediator)
+     */
     @Override
     public void update() {
         // Update mediator if the out queue is not empty AND the outgoing element is not the same as the current element?
@@ -380,9 +429,7 @@ public class UnblindAccessibilityService extends AccessibilityService implements
         if(mediator.getElementFromOutgoingImmediateQueue() == null)
             return;
 
-        System.out.println(currentElement);
-        System.out.println(mediator.getElementFromOutgoingImmediateQueue());
-        currentElement = mediator.serveElementFromOutgoingImmediateQueue();
+        UnblindDataObject currentElement = mediator.serveElementFromOutgoingImmediateQueue();
         Log.d(TAG, "updating on accessibility element");
 
         if (currentElement.batchStatus) {
